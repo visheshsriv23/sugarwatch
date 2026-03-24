@@ -6,7 +6,7 @@ const ProductSchema = new mongoose.Schema({
   barcode: { type: String, unique: true, sparse: true },
   category: {
     type: String,
-    enum: ['Biscuits', 'Beverages', 'Snacks', 'Noodles', 'Dairy', 'Sauces', 'Cereals', 'Other'],
+    // enum: ['Biscuits', 'Beverages', 'Snacks', 'Noodles', 'Dairy', 'Sauces', 'Cereals', 'Other'],
     default: 'Other'
   },
   servingSize: { type: String, default: '100g' },

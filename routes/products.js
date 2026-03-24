@@ -25,7 +25,7 @@ if (rating && rating !== 'All') {
 }
 
     const products = await Product.find(filter).sort({ sugarG: -1 }).limit(50);
-    const categories = ['All', 'Biscuits', 'Beverages', 'Snacks', 'Noodles', 'Dairy', 'Sauces', 'Cereals', 'Other'];
+    const categories = ['All', 'Biscuits', 'Beverages', 'Snacks', 'Noodles', 'Dairy', 'Sauces', 'Cereals','Chocolates','Breakfast Cereals', 'Other'(await Product.distinct('category'))];
 const getSugarRating = (sugarGrams, servingSize) => {
   // Normalize to sugar per 100g/ml for standard rating
   const sugarPer100 = (sugarGrams / servingSize) * 100;
@@ -67,6 +67,34 @@ router.get('/:id', ensureAuth, async (req, res) => {
     req.flash('error', 'Product not found.');
     res.redirect('/products');
   }
+});
+
+// POST /products/log-food/:id
+router.post('/log-food/:id', ensureAuth, async (req, res) => {
+    try {
+        const product = await Product.findById(req.params.id);
+        const gramsEaten = parseFloat(req.body.consumedGrams);
+
+        // Calculate sugar based on your rating logic: (sugarG / servingSize) * gramsEaten
+        const sugarConsumed = (product.sugarG / product.servingSize) * gramsEaten;
+
+        // Save to FoodLog (make sure you require the FoodLog model at the top!)
+        const FoodLog = require('../models/FoodLog');
+        await FoodLog.create({
+            user: req.user.id,
+            productId: product._id,
+            productName: product.name,
+            amountEaten: gramsEaten,
+            sugarConsumed: sugarConsumed.toFixed(2),
+            date: new Date()
+        });
+
+        req.flash('success', `Logged ${sugarConsumed.toFixed(1)}g of sugar!`);
+        res.redirect('/dashboard');
+    } catch (err) {
+        console.error(err);
+        res.render('error/500');
+    }
 });
 
 module.exports = router;
