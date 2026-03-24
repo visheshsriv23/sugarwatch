@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const { ensureAuth } = require('../middleware/auth');
 const Product = require('../models/Product');
+ const FoodLog = require('../models/FoodLog');
 
 // GET /products
 router.get('/', ensureAuth, async (req, res) => {
@@ -79,7 +80,6 @@ router.post('/log-food/:id', ensureAuth, async (req, res) => {
         const sugarConsumed = (product.sugarG / product.servingSize) * gramsEaten;
 
         // Save to FoodLog (make sure you require the FoodLog model at the top!)
-        const FoodLog = require('../models/FoodLog');
         await FoodLog.create({
             user: req.user.id,
             productId: product._id,
@@ -91,10 +91,12 @@ router.post('/log-food/:id', ensureAuth, async (req, res) => {
 
         req.flash('success', `Logged ${sugarConsumed.toFixed(1)}g of sugar!`);
         res.redirect('/dashboard');
-    } catch (err) {
-        console.error(err);
-        res.render('error/500');
-    }
+    // Temporarily replace your catch block with this:
+} catch (err) {
+    console.error("DETAILED ERROR:", err); // This goes to Render Logs
+    res.send(`<h1>Developer Debug Error</h1><p>${err.message}</p><pre>${err.stack}</pre>`); 
+    // This will show the error directly on your screen instead of redirecting!
+}
 });
 
 module.exports = router;
