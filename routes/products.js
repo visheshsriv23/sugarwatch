@@ -72,23 +72,26 @@ router.get('/:id', ensureAuth, async (req, res) => {
 router.post('/log-food/:id', ensureAuth, async (req, res) => {
     try {
         const product = await Product.findById(req.params.id);
-        const gramsEaten = parseFloat(req.body.consumedGrams);
+        const gramsEaten = parseFloat(req.body.consumedGrams) || 0;
 
-        // Calculate sugar based on your rating logic: (sugarG / servingSize) * gramsEaten
-        const sugarConsumed = (product.sugarG / product.servingSize) * gramsEaten;
+        // SAFE CALCULATION: Ensure we have numbers to work with
+        const productSugar = parseFloat(product.sugarG) || 0;
+        const servingSize = parseFloat(product.servingSize) || 100; // Default to 100 to avoid divide-by-zero
 
-        // Save to FoodLog (make sure you require the FoodLog model at the top!)
+        const sugarConsumed = (productSugar / servingSize) * gramsEaten;
+
+        // Save to FoodLog
         await FoodLog.create({
             user: req.user.id,
             productId: product._id,
             productName: product.name,
             amountEaten: gramsEaten,
-            sugarG: sugarConsumed,
+            sugarG: sugarConsumed.toFixed(2), // This matches your Model now!
             date: new Date()
         });
 
         req.flash('success', `Logged ${sugarConsumed.toFixed(1)}g of sugar!`);
-        // res.redirect('/dashboard');
+        res.redirect('/dashboard');
     // Temporarily replace your catch block with this:
 } catch (err) {
     console.error("DETAILED ERROR:", err); // This goes to Render Logs
