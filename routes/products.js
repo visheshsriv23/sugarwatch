@@ -6,50 +6,48 @@ const Product = require('../models/Product');
 
 // GET /products
 router.get('/', ensureAuth, async (req, res) => {
-  try {
-    const { q, category, rating } = req.query;
-    const filter = {};
-    if (q) filter.$or = [
-      { name: { $regex: q, $options: 'i' } },
-      { brand: { $regex: q, $options: 'i' } }
-    ];
-    if (category && category !== 'All') filter.category = category;
-    // In router.get('/'), replace the rating filter logic:
-if (rating && rating !== 'All') {
-    if (rating === 'ok') {
-        filter.sugarG = { $lt: 10 };
-    } else if (rating === 'warn') {
-        filter.sugarG = { $gte: 10, $lte: 20 };
-    } else if (rating === 'danger') {
-        filter.sugarG = { $gt: 20 };
+    try {
+        const { q, category, rating } = req.query;
+        const filter = {};
+
+        if (q) {
+            filter.$or = [
+                { name: { $regex: q, $options: 'i' } },
+                { brand: { $regex: q, $options: 'i' } }
+            ];
+        }
+
+        if (category && category !== 'All') {
+            filter.category = category;
+        }
+
+        // Fix the Rating filter logic
+        if (rating && rating !== 'All') {
+            if (rating === 'ok') filter.rating = 'ok';
+            else if (rating === 'warn') filter.rating = 'warn';
+            else if (rating === 'danger') filter.rating = 'danger';
+        }
+
+        const products = await Product.find(filter).sort({ createdAt: -1 });
+        
+        // This is the line that makes your categories dynamic!
+        const categories = ['All', ...(await Product.distinct('category'))];
+
+        res.render('products/index', {
+            title: 'Product Database',
+            products: products,
+            userLimit: req.user.dailyLimit || 25,
+            categories,
+            q: q || '',
+            selectedCategory: category || 'All',
+            selectedRating: rating || 'All',
+            layout: 'layouts/main'
+        });
+    } catch (err) {
+        console.error("DATABASE ERROR:", err);
+        // Temporarily change this to res.send(err) to see the error on screen if it fails again
+        res.status(500).send("Internal Server Error: " + err.message);
     }
-}
-
-    const products = await Product.find(filter).sort({ sugarG: -1 }).limit(50);
-    const categories = ['All', 'Biscuits', 'Beverages', 'Snacks', 'Noodles', 'Dairy', 'Sauces', 'Cereals','Chocolates','Breakfast Cereals', 'Other'(await Product.distinct('category'))];
-const getSugarRating = (sugarGrams, servingSize) => {
-  // Normalize to sugar per 100g/ml for standard rating
-  const sugarPer100 = (sugarGrams / servingSize) * 100;
-
-  if (sugarPer100 <= 5) return "Low";
-  if (sugarPer100 <= 22.5) return "Medium";
-  return "High";
-};
-
-    res.render('products/index', {
-      title: 'Product Database',
-      products: products,
-      userLimit: req.user.dailyLimit || 25,
-      categories,
-      q: q || '',
-      selectedCategory: category || 'All',
-      selectedRating: rating || 'All',
-      layout: 'layouts/main'
-    });
-  } catch (err) {
-    req.flash('error', 'Could not load products.');
-    res.redirect('/dashboard');
-  }
 });
 
 // GET /products/:id
@@ -90,7 +88,7 @@ router.post('/log-food/:id', ensureAuth, async (req, res) => {
         });
 
         req.flash('success', `Logged ${sugarConsumed.toFixed(1)}g of sugar!`);
-        res.redirect('/dashboard');
+        // res.redirect('/dashboard');
     // Temporarily replace your catch block with this:
 } catch (err) {
     console.error("DETAILED ERROR:", err); // This goes to Render Logs
