@@ -1,0 +1,138 @@
+<!-- Search & Filters -->
+<div class="card mb-2">
+  <div class="card-body">
+    <form method="GET" action="/products" style="display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end;">
+      <div style="flex:1;min-width:200px;">
+        <label class="form-label">Search</label>
+        <input class="form-control" type="text" name="q" value="<%= q %>" placeholder="Product name or brand..."/>
+      </div>
+      <div style="min-width:150px;">
+        <label class="form-label">Category</label>
+        <select class="form-control form-select" name="category">
+          <% categories.forEach(cat => { %>
+          <option value="<%= cat %>" <%= selectedCategory === cat ? 'selected' : '' %>><%= cat %></option>
+          <% }) %>
+        </select>
+      </div>
+      <div style="min-width:130px;">
+        <label class="form-label">Sugar level</label>
+        <select class="form-control form-select" name="rating">
+          <option value="All" <%= selectedRating === 'All' ? 'selected' : '' %>>All levels</option>
+          <option value="ok" <%= selectedRating === 'ok' ? 'selected' : '' %>>Low (&lt;10g)</option>
+<option value="warn" <%= selectedRating === 'warn' ? 'selected' : '' %>>Medium (10-20g)</option>
+<option value="danger" <%= selectedRating === 'danger' ? 'selected' : '' %>>High (&gt;20g)</option>
+        </select>
+      </div>
+      <button type="submit" class="btn btn-primary">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+        Search
+      </button>
+      <% if (q || selectedCategory !== 'All' || selectedRating !== 'All') { %>
+      <a href="/products" class="btn btn-outline">Clear</a>
+      <% } %>
+    </form>
+  </div>
+</div>
+
+<!-- Results Count -->
+<div class="flex justify-between items-center mb-2">
+  <p style="font-size:13px;color:var(--muted);"><strong style="color:var(--text);"><%= products.length %></strong> product<%= products.length !== 1 ? 's' : '' %> found</p>
+  <a href="/scan" class="btn btn-outline btn-sm">+ Log food manually</a>
+</div>
+
+<!-- Products Table -->
+<% if (products.length === 0) { %>
+  <div class="card">
+    <div class="card-body" style="text-align:center;padding:3rem;">
+      <div style="font-size:2.5rem;margin-bottom:.75rem;">🔍</div>
+      <div style="font-size:15px;font-weight:600;margin-bottom:.5rem;">No products found</div>
+      <p style="font-size:13px;color:var(--muted);">Try a different search term or category.</p>
+    </div>
+  </div>
+<% } else { %>
+<div class="card">
+  <div class="table-wrapper">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Product</th>
+          <th>Category</th>
+          <th>Per serving</th>
+          <th>Sugar</th>
+          <th>Teaspoons</th>
+          <th>% Daily limit</th>
+          <th>Rating</th>
+          <th class="text-end">Action</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% products.forEach(p => { 
+          const tsp = (p.sugarG / 4).toFixed(2);
+          // Assuming 'userLimit' is passed from your controller
+const pct = Math.round((p.sugarG / userLimit) * 100);
+          const barW = Math.min(pct, 100);
+          const barColor = p.sugarG > 20 ? '#C8312B' : (p.sugarG >= 10 ? '#E09A00' : '#0D6E56');
+        %>
+        <tr>
+          <td>
+            <div style="font-weight:600;font-size:13.5px;"><%= p.name %></div>
+            <div style="font-size:11px;color:var(--muted);"><%= p.brand %></div>
+          </td>
+          <td><span class="badge badge-info"><%= p.category %></span></td>
+          <td style="font-size:12px;color:var(--muted);"><%= p.servingSize %></td>
+          <td><strong style="font-family:var(--syne);color:<%= barColor %>;"><%= p.sugarG %>g</strong></td>
+          <td style="font-size:13px;"><%= tsp %> tsp</td>
+          <td>
+            <div style="display:flex;align-items:center;gap:8px;">
+              <div style="width:80px;height:6px;background:#F0EDE8;border-radius:3px;overflow:hidden;">
+                <div style="height:100%;width:<%= barW %>%;background:<%= barColor %>;border-radius:3px;"></div>
+              </div>
+              <span style="font-size:11px;font-weight:600;color:<%= barColor %>;"><%= pct %>%</span>
+            </div>
+          </td>
+          <td>
+  <% 
+    let ratingClass = 'bg-success';
+    let ratingText = 'Low';
+    if (p.sugarG > 20) { ratingClass = 'bg-danger'; ratingText = 'High'; }
+    else if (p.sugarG >= 10) { ratingClass = 'bg-warning'; ratingText = 'Medium'; }
+  %>
+  <span class="badge rounded-pill <%= ratingClass %>">
+    <%= ratingText %>
+  <% if (p.rating) { %> (<%= p.rating %>)
+  <% } %>
+  </span>
+<td class="text-end">
+        <a href="/products/<%= p._id %>" class="btn btn-outline btn-sm">View</a>
+    </td>
+</tr>
+        </tr>
+        <% }) %>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- Mobile Cards View -->
+<div class="product-grid mt-2" style="display:none;" id="productCards">
+  <% products.forEach(p => { %>
+  <a href="/products/<%= p._id %>" class="product-card">
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:4px;">
+      <div class="pc-name"><%= p.name %></div>
+      <span class="badge badge-<%= p.sugarG > 20 ? 'danger' : (p.sugarG >= 10 ? 'warning' : 'success') %>">
+  <%= p.sugarG > 20 ? 'High' : (p.sugarG >= 10 ? 'Medium' : 'Low') %>
+</span>
+    </div>
+    <div class="pc-brand"><%= p.brand %> · <%= p.category %></div>
+    <div style="display:flex;align-items:baseline;gap:6px;margin-bottom:8px;">
+      <div class="pc-sugar" style="color:<%= p.rating === 'danger' ? 'var(--red)' : p.rating === 'warn' ? 'var(--amber)' : 'var(--teal)' %>"><%= p.sugarG %>g</div>
+      <div style="font-size:12px;color:var(--muted);"><%= (p.sugarG/4).toFixed(2) %> tsp</div>
+    </div>
+    <div class="mt-2">
+    <a href="/products/<%= p._id %>" class="btn btn-sm btn-block btn-outline-primary">View Product</a>
+</div>
+    <div class="sugar-track track-sm"><div class="sugar-fill" style="width:<%= Math.min(Math.round(p.sugarG/25*100),100) %>%;"></div></div>
+  </a>
+  <% }) %>
+</div>
+<% } %>

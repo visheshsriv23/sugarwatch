@@ -1,0 +1,162 @@
+<!-- Profile Hero -->
+<div class="profile-hero">
+  <div class="profile-avatar"><%= user.name.split(' ').map(n=>n[0]).join('').toUpperCase().slice(0,2) %></div>
+  <div style="flex:1;">
+    <div class="profile-name"><%= user.name %></div>
+    <div class="profile-email"><%= user.email %></div>
+    <div class="profile-since">Member since <%= new Date(user.createdAt).toLocaleDateString('en-IN', { month:'long', year:'numeric' }) %></div>
+  </div>
+  <div style="display:flex;gap:12px;text-align:center;">
+    <div>
+      <div style="font-family:var(--syne);font-size:1.4rem;font-weight:800;"><%= totalLogs %></div>
+      <div style="font-size:11px;color:var(--muted);">Foods logged</div>
+    </div>
+    <div style="width:1px;background:var(--border);"></div>
+    <div>
+      <div style="font-family:var(--syne);font-size:1.4rem;font-weight:800;"><%= avgSugar %>g</div>
+      <div style="font-size:11px;color:var(--muted);">Avg per log</div>
+    </div>
+    <div style="width:1px;background:var(--border);"></div>
+    <div>
+      <div style="font-family:var(--syne);font-size:1.4rem;font-weight:800;"><%= user.dailyLimit %>g</div>
+      <div style="font-size:11px;color:var(--muted);">Daily limit</div>
+    </div>
+  </div>
+</div>
+<div class="container mt-3">
+  <% if (success_msg && success_msg.length > 0) { %>
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+      <%= success_msg %>
+      <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+  <% } %>
+
+  <% if (error_msg && error_msg.length > 0) { %>
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+      <%= error_msg %>
+      <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+  <% } %>
+</div>
+
+
+<!-- Tabs -->
+<nav class="profile-tabs">
+  <button class="tab-btn active" data-target="personal-info">Account Settings</button>
+  <button class="tab-btn" data-target="tab-password">Change Password</button>
+  <button class="tab-btn" data-target="tab-preferences">Preferences</button>
+</nav>
+
+<!-- Settings Tab -->
+<div id="personal-info" class="tab-panel active">
+  <div class="card" style="max-width:600px;">
+    <div class="card-header"><span class="card-title">Personal information</span></div>
+    <div class="card-body">
+      <form action="/profile/update" method="POST">
+        <div class="form-group">
+          <label class="form-label">Full name</label>
+          <input class="form-control" type="text" name="name" value="<%= user.name %>" required/>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Email address</label>
+          <input class="form-control" type="email" value="<%= user.email %>" disabled style="opacity:.6;cursor:not-allowed;"/>
+          <div class="form-hint">Email cannot be changed.</div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Age</label>
+            <input class="form-control" type="number" name="age" value="<%= user.age || '' %>" min="1" max="120" placeholder="e.g. 28"/>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Gender</label>
+            <select class="form-control form-select" name="gender">
+              <option value="">Prefer not to say</option>
+              <option value="male" <%= user.gender === 'male' ? 'selected' : '' %>>Male</option>
+              <option value="female" <%= user.gender === 'female' ? 'selected' : '' %>>Female</option>
+              <option value="other" <%= user.gender === 'other' ? 'selected' : '' %>>Other</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Daily sugar limit (grams)</label>
+          <input class="form-control" type="number" name="dailyLimit" value="<%= user.dailyLimit || 25 %>" min="1" max="200" required/>
+          <div class="form-hint">WHO recommends 25g/day for adults. Adjust based on your doctor's advice.</div>
+        </div>
+        <button type="submit" class="btn btn-primary">Save changes</button>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Password Tab -->
+<div id="tab-password" class="tab-panel">
+  <div class="card" style="max-width:480px;">
+    <div class="card-header"><span class="card-title">Change password</span></div>
+    <div class="card-body">
+      <form action="/profile/change-password" method="POST">
+        <div class="form-group">
+          <label class="form-label">Current password</label>
+          <input class="form-control" type="password" name="currentPassword" required placeholder="Your current password"/>
+        </div>
+        <div class="form-group">
+          <label class="form-label">New password</label>
+          <input class="form-control" type="password" name="newPassword" id="newPassword" required placeholder="Minimum 6 characters"/>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Confirm new password</label>
+          <input class="form-control" type="password" name="confirmPassword" required placeholder="Repeat new password"/>
+        </div>
+        <button type="submit" class="btn btn-primary">Update password</button>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Preferences Tab -->
+<div id="tab-preferences" class="tab-panel">
+  <div class="card" style="max-width:600px;">
+    <div class="card-header"><span class="card-title">App preferences</span></div>
+    <div class="card-body">
+      <% const prefs = [
+        { label: 'Daily sugar reminder', desc: 'Get notified when you\'re close to your daily limit', checked: true },
+        { label: 'Hidden sugar alerts', desc: 'Highlight products with disguised sugar ingredients', checked: true },
+        { label: 'Weekly summary', desc: 'Receive a weekly digest of your sugar intake', checked: false },
+        { label: 'Show teaspoons by default', desc: 'Show sugar in teaspoons instead of grams', checked: true }
+      ] %>
+      <% prefs.forEach((pref, i) => { %>
+      <div style="display:flex;justify-content:space-between;align-items:center;padding:14px 0;border-bottom:<%= i < prefs.length-1 ? '1px solid var(--border)' : 'none' %>;">
+        <div>
+          <div style="font-size:13.5px;font-weight:500;"><%= pref.label %></div>
+          <div style="font-size:12px;color:var(--muted);<%= pref.desc ? '' : 'display:none;' %>"><%= pref.desc %></div>
+        </div>
+        <label style="position:relative;display:inline-block;width:44px;height:24px;cursor:pointer;">
+          <input type="checkbox" <%= pref.checked ? 'checked' : '' %> style="opacity:0;width:0;height:0;" onchange="this.parentElement.querySelector('span').style.background=this.checked?'var(--orange)':'#ccc';this.parentElement.querySelector('span')._dot.style.transform=this.checked?'translateX(20px)':'translateX(0)'"/>
+          <span id="toggle-<%= i %>" style="position:absolute;inset:0;background:<%= pref.checked ? 'var(--orange)' : '#ccc' %>;border-radius:24px;transition:.3s;"></span>
+          <span style="position:absolute;top:3px;left:3px;width:18px;height:18px;background:#fff;border-radius:50%;transition:.3s;transform:<%= pref.checked ? 'translateX(20px)' : 'translateX(0)' %>;"></span>
+        </label>
+      </div>
+      <% }) %>
+      <div style="margin-top:1rem;">
+        <button class="btn btn-primary">Save preferences</button>
+      </div>
+    </div>
+  </div>
+</div>
+<script>
+  const tabs = document.querySelectorAll('.tab-btn');
+  const panels = document.querySelectorAll('.tab-panel');
+
+  tabs.forEach(tab => {
+    tab.addEventListener('click', () => {
+      const target = tab.getAttribute('data-target');
+
+      // 1. Remove active class from all buttons and panels
+      tabs.forEach(t => t.classList.remove('active'));
+      panels.forEach(p => p.classList.remove('active'));
+
+      // 2. Add active class to clicked button and target panel
+      tab.classList.add('active');
+      document.getElementById(target).classList.add('active');
+    });
+  });
+</script>

@@ -1,0 +1,215 @@
+<!-- Metric Cards -->
+<div class="metrics-grid">
+  <div class="metric-card">
+    <div class="metric-label">Sugar today</div>
+    <div class="metric-value" style="color:<%= todaySugar > limit ? 'var(--red)' : todaySugar > limit*0.75 ? 'var(--amber)' : 'var(--teal)' %>"><%= todaySugar %>g</div>
+    <div class="metric-sub" style="color:var(--muted);"><%= (todaySugar/4).toFixed(1) %> tsp consumed</div>
+  </div>
+  <div class="metric-card">
+    <div class="metric-label">Remaining</div>
+    <div class="metric-value" style="color:<%= remaining <= 0 ? 'var(--red)' : 'var(--teal)' %>"><%= remaining %>g</div>
+    <div class="metric-sub" style="color:var(--muted);"><%= (remaining/4).toFixed(1) %> tsp left today</div>
+  </div>
+  <div class="metric-card">
+    <div class="metric-label">Daily limit</div>
+    <div class="metric-value"><%= limit %>g</div>
+    <div class="metric-sub" style="color:var(--muted);"><b>25-50g </b>WHO recommended</div>
+  </div>
+  <div class="metric-card">
+    <div class="metric-label">Weekly avg</div>
+    <div class="metric-value" style="color:<%= weekAvg > limit ? 'var(--red)' : weekAvg > limit*0.75 ? 'var(--amber)' : 'var(--teal)' %>"><%= weekAvg %>g</div>
+    <div class="metric-sub" style="color:var(--muted);"><%= (weekAvg/4).toFixed(1) %> tsp / day</div>
+  </div>
+</div>
+
+<!-- Daily Meter -->
+<div class="card mb-2">
+  <div class="card-body">
+    <div class="flex justify-between items-center mb-1">
+      <span class="card-label" style="margin:0;">Today's sugar meter</span>
+      <span style="font-size:12px;font-weight:600;color:<%= pct >= 100 ? 'var(--red)' : pct >= 75 ? 'var(--amber)' : 'var(--teal)' %>"><%= pct %>% of <%= limit %>g limit</span>
+    </div>
+    <div class="sugar-track" style="height:14px;margin:.5rem 0;">
+      <div class="sugar-fill" style="width:<%= pct %>%;"></div>
+    </div>
+    <div class="flex justify-between" style="font-size:10px;color:var(--muted);">
+      <span>0g</span>
+      <span style="color:var(--teal);">Safe (&lt;50%)</span>
+      <span style="color:var(--amber);">Caution (75%)</span>
+      <span style="color:var(--red);"><%= limit %>g limit</span>
+    </div>
+  </div>
+</div>
+
+<!-- Charts Row -->
+<div class="grid-2 mb-2">
+  <!-- Meal Breakdown -->
+  <div class="card">
+    <div class="card-header">
+      <span class="card-title">Sugar by meal type</span>
+    </div>
+    <div class="card-body">
+      <svg width="130" height="130" viewBox="0 0 130 130" style="display:block;margin:0 auto 1rem;">
+        <% 
+          const total = todaySugar || 1;
+          const circumference = 2 * Math.PI * 50;
+          const meals = [
+            { key: 'breakfast', color: '#0D6E56', label: 'Breakfast' },
+            { key: 'lunch',     color: '#E8520A', label: 'Lunch' },
+            { key: 'dinner',    color: '#B06800', label: 'Dinner' },
+            { key: 'snack',     color: '#C8312B', label: 'Snacks' }
+          ];
+          let offset = 0;
+        %>
+        <circle cx="65" cy="65" r="50" fill="none" stroke="#F0EDE8" stroke-width="14"/>
+        <% meals.forEach(m => { 
+          const val = mealBreakdown[m.key] || 0;
+          const dash = (val / total) * circumference;
+        %>
+          <% if (val > 0) { %>
+          <circle cx="65" cy="65" r="50" fill="none" stroke="<%= m.color %>" stroke-width="14"
+            stroke-dasharray="<%= dash.toFixed(1) %> <%= circumference %>"
+            stroke-dashoffset="<%= (-offset).toFixed(1) %>"
+            stroke-linecap="round" transform="rotate(-90 65 65)"/>
+          <% } %>
+        <% offset += (val/total)*circumference; }) %>
+        <text x="65" y="61" text-anchor="middle" font-family="Syne,sans-serif" font-size="17" font-weight="800" fill="#1A1A1A"><%= todaySugar %>g</text>
+        <text x="65" y="76" text-anchor="middle" font-family="DM Sans,sans-serif" font-size="10" fill="#6B6B6B">today</text>
+      </svg>
+      <% meals.forEach(m => { %>
+      <div class="flex items-center gap-2 mb-1" style="font-size:12px;color:var(--muted);">
+        <div style="width:10px;height:10px;border-radius:2px;background:<%= m.color %>;flex-shrink:0;"></div>
+        <span><%= m.label %></span>
+        <span style="margin-left:auto;font-weight:600;color:var(--text);"><%= mealBreakdown[m.key] || 0 %>g</span>
+        <span style="color:var(--hint);font-size:10px;">(<%= ((mealBreakdown[m.key]||0)/4).toFixed(1) %> tsp)</span>
+      </div>
+      <% }) %>
+    </div>
+  </div>
+
+  <!-- Weekly Bar Chart -->
+  <div class="card">
+    <div class="card-header">
+      <span class="card-title">This week (g/day)</span>
+      <span style="font-size:11px;color:var(--orange);">— <%= limit %>g limit</span>
+    </div>
+    <div class="card-body">
+      <div class="week-chart" id="weekChart" style="height:120px;">
+        <% 
+          const maxBar = Math.max(...weekData.map(d=>d.sugar), limit+5);
+        %>
+        <% weekData.forEach((d, i) => { 
+          // Calculate height based on the user's limit (e.g., 100g)
+          const barH = Math.min(Math.round((d.sugar / limit) * 100), 100);
+          const limitH = Math.round((limit / maxBar) * 100);
+          const barColor = d.sugar > limit ? '#C8312B' : d.sugar > limit*0.75 ? '#B06800' : '#0D6E56';
+          const isToday = i === weekData.length - 1;
+        %>
+        <div class="wbar-col">
+          <div class="wbar-val" style="color:<%= barColor %>; font-family:var(--syne);"><%= d.sugar %></div>
+          <div class="wbar-outer" style="height:100px; position:relative; background: var(--bg-light); border-radius: 4px; margin: 0 5px;">
+    <div class="wbar-inner" style="
+        position: absolute; 
+        bottom: 0; 
+        width: 100%; 
+        height: <%= barH %>%; 
+        background-color: <%= barColor %>; 
+        border-radius: 4px 4px 0 0;
+        transition: height 0.5s ease;">
+    </div>
+    
+    <div style="position: absolute; bottom: 75%; width: 100%; border-top: 1px dashed var(--orange); opacity: 0.4;"></div>
+</div>
+          <div class="wbar-label" style="<%= isToday ? 'color:var(--orange);font-weight:600;' : '' %>"><%= d.day %></div>
+        </div>
+        <% }) %>
+      </div>
+      <div style="margin-top:1.25rem;padding-top:1rem;border-top:1px solid var(--border);">
+        <div class="flex justify-between" style="font-size:12px;">
+          <span style="color:var(--muted);">7-day average</span>
+          <span style="font-weight:700;font-family:var(--syne);color:<%= weekAvg > limit ? 'var(--red)' : 'var(--teal)' %>"><%= weekAvg %>g / day</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Today's Food Log -->
+<div class="card">
+  <div class="card-header">
+    <span class="card-title">Today's food log</span>
+    <a href="/scan" class="btn btn-primary btn-sm">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+      Log food
+    </a>
+  </div>
+  <div class="card-body">
+    <% if (todayLogs.length === 0) { %>
+      <div style="text-align:center;padding:2rem 0;color:var(--muted);">
+        <div style="font-size:2rem;margin-bottom:.5rem;">🍽️</div>
+        <div style="font-size:14px;font-weight:500;margin-bottom:.25rem;">Nothing logged yet today</div>
+        <div style="font-size:12px;">Scan a barcode or add food manually to start tracking.</div>
+        <a href="/scan" class="btn btn-primary btn-sm" style="margin-top:1rem;display:inline-flex;">Scan now</a>
+      </div>
+    <% } else { %>
+      <% todayLogs.forEach(log => { 
+        const mealColors = { breakfast:'#E2F4EE', lunch:'#FBF0EA', dinner:'#EEF0FB', snack:'#FEF3DC' };
+        const mealEmoji = { breakfast:'🌅', lunch:'🍱', dinner:'🌙', snack:'🍿' };
+      %>
+      <div class="meal-row">
+        <div class="meal-icon" style="background:<%= mealColors[log.mealType] || '#F0EDE8' %>;"><%= mealEmoji[log.mealType] || '🍽️' %></div>
+        <div class="meal-info">
+          <div class="meal-name"><%= log.productName %></div>
+          <div class="meal-meta">
+            <%= log.brand ? log.brand + ' · ' : '' %>
+            <%= log.servingSize %> · 
+            <span style="text-transform:capitalize;"><%= log.mealType %></span> · 
+            <%= new Date(log.loggedAt).toLocaleTimeString('en-IN', { hour:'2-digit', minute:'2-digit' }) %>
+          </div>
+        </div>
+        <div class="meal-sugar">
+          <div class="meal-g" style="color:<%= log.sugarG >= 20 ? 'var(--red)' : log.sugarG >= 10 ? 'var(--amber)' : 'var(--teal)' %>"><%= log.sugarG %>g</div>
+          <div class="meal-tsp"><%= log.tsp %> tsp</div>
+        </div>
+        <button onclick="deleteLog('<%= log._id %>')" class="btn btn-icon btn-outline btn-sm" style="margin-left:8px;" title="Remove">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3,6 5,6 21,6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/></svg>
+        </button>
+      </div>
+      <% }) %>
+    <% } %>
+  </div>
+</div>
+
+<!-- Smart Tips -->
+<div class="grid-2 mt-2">
+  <% 
+    const tips = [];
+    if (pct >= 100) tips.push({ type:'danger', title:'Over your daily limit!', msg:`You've exceeded your ${limit}g limit. Avoid any more sugar today and drink extra water.` });
+    else if (pct >= 75) tips.push({ type:'warn', title:'Getting close to your limit', msg:`Only ${remaining}g (${(remaining/4).toFixed(1)} tsp) remaining. Skip sweet drinks at dinner.` });
+    else tips.push({ type:'ok', title:'On track today', msg:`You've used ${pct}% of your daily sugar limit. Keep choosing wisely.` });
+    if (weekAvg > limit) tips.push({ type:'warn', title:'Weekly average is high', msg:`Your 7-day avg (${weekAvg}g) is over the ${limit}g limit. Try cutting one chai sugar per day.` });
+    else tips.push({ type:'ok', title:'Weekly average is healthy', msg:`Great work — your 7-day average is ${weekAvg}g, within your ${limit}g daily limit.` });
+    if (mealBreakdown.snack > 10) tips.push({ type:'warn', title:'High snack sugar', msg:'Snacks contributed over 10g today. Try swapping packaged snacks for nuts or fruit.' });
+    tips.push({ type:'info', title:'Did you know?', msg:'4g of sugar = 1 teaspoon. Parle-G 100g has 7 teaspoons of sugar — more than a whole day\'s limit.' });
+  %>
+  <% tips.slice(0,4).forEach(tip => { 
+    const tipColors = { danger:'var(--red-light)', warn:'var(--amber-light)', ok:'var(--teal-light)', info:'var(--orange-light)' };
+    const tipText = { danger:'var(--red)', warn:'var(--amber)', ok:'var(--teal)', info:'var(--orange)' };
+  %>
+  <div style="background:<%= tipColors[tip.type] %>;border-radius:var(--radius-lg);padding:1rem;font-size:13px;line-height:1.55;color:<%= tipText[tip.type] %>;">
+    <strong style="display:block;font-size:13.5px;font-weight:600;margin-bottom:4px;"><%= tip.title %></strong>
+    <%= tip.msg %>
+  </div>
+  <% }) %>
+</div>
+
+<%- include('../partials/footer') %>
+<script>
+async function deleteLog(id) {
+  if (!confirm('Remove this food item from today\'s log?')) return;
+  const res = await fetch(`/dashboard/log/${id}`, { method: 'DELETE' });
+  const data = await res.json();
+  if (data.success) location.reload();
+  else alert('Could not delete. Please try again.');
+}
+</script>

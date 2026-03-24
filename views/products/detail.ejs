@@ -1,0 +1,135 @@
+<!-- Back button -->
+<div style="margin-bottom:1.25rem;">
+  <a href="/products" class="btn btn-outline btn-sm">← Back to products</a>
+</div>
+
+<div class="grid-2">
+  <!-- Product Info -->
+  <div>
+    <div class="card mb-2">
+      <div class="card-body">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:.5rem;">
+          <span class="badge badge-info"><%= product.category %></span>
+          <span class="badge badge-<%= product.rating %>"><%= product.rating === 'danger' ? 'High Sugar' : product.rating === 'warn' ? 'Medium Sugar' : 'Low Sugar' %></span>
+        </div>
+        <h2 style="font-family:var(--syne);font-size:1.3rem;font-weight:800;margin-bottom:.25rem;"><%= product.name %></h2>
+        <p style="font-size:13px;color:var(--muted);margin-bottom:1.25rem;"><%= product.brand %> · <%= product.servingSize %></p>
+        <% if (product.barcode) { %>
+        <div style="font-size:11px;color:var(--hint);margin-bottom:1.25rem;">Barcode: <%= product.barcode %></div>
+        <% } %>
+
+        <!-- Big sugar display -->
+        <div style="text-align:center;padding:1.25rem;background:var(--bg);border-radius:var(--radius);margin-bottom:1rem;">
+          <div style="font-family:var(--syne);font-size:3.5rem;font-weight:800;color:<%= product.rating === 'danger' ? 'var(--red)' : product.rating === 'warn' ? 'var(--amber)' : 'var(--teal)' %>;line-height:1;"><%= product.sugarG %>g</div>
+          <div style="font-size:13px;color:var(--muted);margin-top:4px;">sugar per <%= product.servingSize %></div>
+          <div style="font-family:var(--syne);font-size:1.1rem;font-weight:700;margin-top:8px;"><%= (product.sugarG/4).toFixed(2) %> teaspoons</div>
+          <div style="display:flex;gap:4px;justify-content:center;margin-top:8px;flex-wrap:wrap;">
+            <% for(let i=0;i<7;i++) { 
+              const filled = i < Math.floor(product.sugarG/4);
+              const half = i === Math.floor(product.sugarG/4) && (product.sugarG/4)%1 > 0;
+            %>
+            <div style="width:20px;height:20px;border-radius:3px;background:<%= filled||half ? 'var(--orange)' : '#E5E0D8' %>;opacity:<%= half ? 0.4 : 1 %>;"></div>
+            <% } %>
+          </div>
+        </div>
+
+        <!-- Daily limit bar -->
+        <div style="margin-bottom:1rem;">
+          <div style="display:flex;justify-content:space-between;font-size:12px;color:var(--muted);margin-bottom:6px;">
+            <span>% of 25g daily limit</span>
+            <span style="font-weight:700;color:<%= product.rating === 'danger' ? 'var(--red)' : product.rating === 'warn' ? 'var(--amber)' : 'var(--teal)' %>"><%= Math.round(product.sugarG/25*100) %>%</span>
+          </div>
+          <div class="sugar-track"><div class="sugar-fill" style="width:<%= Math.min(Math.round(product.sugarG/25*100),100) %>%;"></div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Hidden sugars -->
+    <% if (product.hiddenSugars && product.hiddenSugars.length > 0) { %>
+    <div style="background:var(--red-light);border:1px solid #fecaca;border-radius:var(--radius-lg);padding:1rem;margin-bottom:1rem;">
+      <div style="font-weight:600;color:var(--red);margin-bottom:.5rem;font-size:13.5px;">⚠ Hidden sugars detected</div>
+      <div style="display:flex;flex-wrap:wrap;gap:6px;">
+        <% product.hiddenSugars.forEach(s => { %>
+        <span style="background:#fff;border:1px solid #fecaca;border-radius:6px;padding:3px 9px;font-size:12px;color:var(--red);"><%= s %></span>
+        <% }) %>
+      </div>
+    </div>
+    <% } %>
+
+    <!-- Log this product -->
+    <div class="card">
+      <div class="card-header"><span class="card-title">Log this product</span></div>
+      <div class="card-body">
+        <form action="/scan/log" method="POST">
+          <input type="hidden" name="productName" value="<%= product.name %>"/>
+          <input type="hidden" name="brand" value="<%= product.brand %>"/>
+          <input type="hidden" name="sugarG" value="<%= product.sugarG %>"/>
+          <input type="hidden" name="calories" value="<%= product.calories %>"/>
+          <input type="hidden" name="carbs" value="<%= product.carbs %>"/>
+          <input type="hidden" name="fat" value="<%= product.fat %>"/>
+          <input type="hidden" name="servingSize" value="<%= product.servingSize %>"/>
+          <input type="hidden" name="barcode" value="<%= product.barcode || '' %>"/>
+          <div class="form-group">
+            <label class="form-label">Meal type</label>
+            <select class="form-control form-select" name="mealType">
+              <option value="breakfast">🌅 Breakfast</option>
+              <option value="lunch">🍱 Lunch</option>
+              <option value="dinner">🌙 Dinner</option>
+              <option value="snack" selected>🍿 Snack</option>
+            </select>
+          </div>
+          <button type="submit" class="btn btn-primary w-full" style="justify-content:center;">
+            Add to today's log
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Nutrition Facts -->
+  <div>
+    <div class="card mb-2">
+      <div class="card-header"><span class="card-title">Nutrition facts</span></div>
+      <div class="card-body">
+        <% const nutrients = [
+          { label: 'Calories',    value: product.calories + ' kcal', pct: null },
+          { label: 'Total sugar', value: product.sugarG + 'g',       pct: Math.round(product.sugarG/25*100) + '% DV' },
+          { label: 'Total carbs', value: product.carbs + 'g',        pct: null },
+          { label: 'Total fat',   value: product.fat + 'g',          pct: null },
+          { label: 'Protein',     value: product.protein + 'g',      pct: null }
+        ] %>
+        <% nutrients.forEach((n, i) => { %>
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:<%= i < nutrients.length-1 ? '1px solid var(--border)' : 'none' %>;">
+          <span style="font-size:13.5px;"><%= n.label %></span>
+          <div style="display:flex;align-items:center;gap:8px;">
+            <strong style="font-family:var(--syne);font-size:14px;"><%= n.value %></strong>
+            <% if (n.pct) { %><span style="font-size:11px;color:var(--muted);"><%= n.pct %></span><% } %>
+          </div>
+        </div>
+        <% }) %>
+        <div style="margin-top:12px;padding-top:10px;border-top:2px solid var(--text);">
+          <p style="font-size:10px;color:var(--muted);line-height:1.5;">* Daily values based on WHO guideline of 25g sugar/day for adults. Actual values may vary.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Similar products -->
+    <% if (similar.length > 0) { %>
+    <div class="card">
+      <div class="card-header"><span class="card-title">Similar products</span></div>
+      <div class="card-body" style="padding:0;">
+        <% similar.forEach(s => { %>
+        <a href="/products/<%= s._id %>" style="display:flex;align-items:center;gap:12px;padding:12px 1.25rem;border-bottom:1px solid var(--border);text-decoration:none;transition:background .15s;" onmouseover="this.style.background='var(--bg)'" onmouseout="this.style.background=''">
+          <div style="flex:1;">
+            <div style="font-size:13px;font-weight:600;color:var(--text);"><%= s.name %></div>
+            <div style="font-size:11px;color:var(--muted);"><%= s.brand %></div>
+          </div>
+          <span style="font-family:var(--syne);font-size:13px;font-weight:700;color:<%= s.rating === 'danger' ? 'var(--red)' : s.rating === 'warn' ? 'var(--amber)' : 'var(--teal)' %>"><%= s.sugarG %>g</span>
+          <span class="badge badge-<%= s.rating %>"><%= s.rating === 'danger' ? 'High' : s.rating === 'warn' ? 'Med' : 'Low' %></span>
+        </a>
+        <% }) %>
+      </div>
+    </div>
+    <% } %>
+  </div>
+</div>

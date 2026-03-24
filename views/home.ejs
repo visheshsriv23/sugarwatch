@@ -1,0 +1,94 @@
+<nav class="landing-nav">
+  <div class="brand">Sugar<span>Watch</span></div>
+  <ul class="landing-nav-links">
+    <li><a href="#features">Features</a></li>
+    <li><a href="#how">How it works</a></li>
+    <li><a href="/auth/login">Sign in</a></li>
+  </ul>
+  <a href="/auth/signup" class="btn btn-primary btn-sm">Get started free</a>
+</nav>
+
+<div class="hero-landing">
+  <div>
+    <div class="hero-badge">India's #1 Sugar Tracker</div>
+    <h1>Know the <em>hidden sugars</em> in your favourite Indian snacks</h1>
+    <p>Scan any packaged food and instantly see sugar in teaspoons — not confusing grams. Built for Parle, Britannia, Haldiram's, MTR, and 8,000+ Indian products.</p>
+    <div class="hero-btns">
+      <a href="/auth/signup" class="btn btn-primary">Start tracking free</a>
+      <a href="/auth/login" class="btn btn-outline">Sign in</a>
+    </div>
+    <div style="display:flex;gap:20px;margin-top:2rem;flex-wrap:wrap;">
+      <div style="display:flex;align-items:center;gap:6px;font-size:12px;color:var(--muted);"><div style="width:6px;height:6px;border-radius:50%;background:var(--teal);"></div>Free — no credit card</div>
+      <div style="display:flex;align-items:center;gap:6px;font-size:12px;color:var(--muted);"><div style="width:6px;height:6px;border-radius:50%;background:var(--teal);"></div>50,000+ users</div>
+      <div style="display:flex;align-items:center;gap:6px;font-size:12px;color:var(--muted);"><div style="width:6px;height:6px;border-radius:50%;background:var(--teal);"></div>WHO-aligned limits</div>
+    </div>
+  </div>
+  <div style="background:var(--text);border-radius:24px;padding:1.5rem;box-shadow:0 40px 80px rgba(0,0,0,.18);">
+    <div style="font-family:var(--syne);font-size:11px;font-weight:700;color:rgba(255,255,255,.4);letter-spacing:.08em;text-transform:uppercase;margin-bottom:.75rem;">Today's sugar</div>
+    <div style="background:var(--orange-light);border-radius:12px;padding:1rem;margin-bottom:1rem;">
+      <div style="font-family:var(--syne);font-size:1.8rem;font-weight:800;color:var(--orange);">19.5g</div>
+      <div style="font-size:11px;color:var(--muted);">of 25g daily limit · 4.9 teaspoons</div>
+      <div style="height:8px;background:#F0EDE8;border-radius:4px;margin-top:8px;overflow:hidden;"><div style="height:100%;width:78%;background:linear-gradient(90deg,var(--teal),var(--orange));border-radius:4px;"></div></div>
+    </div>
+    <div style="font-family:var(--syne);font-size:11px;font-weight:700;color:rgba(255,255,255,.4);letter-spacing:.08em;text-transform:uppercase;margin-bottom:.75rem;">Latest scan</div>
+    <div style="background:rgba(255,255,255,.06);border-radius:10px;padding:12px;margin-bottom:.75rem;">
+      <div style="display:flex;justify-content:space-between;align-items:center;">
+        <div>
+          <div style="font-size:12px;font-weight:600;color:#fff;">Parle-G Biscuits 100g</div>
+          <div style="font-size:10px;color:rgba(255,255,255,.4);">Parle Products · Snack</div>
+        </div>
+        <div style="text-align:right;">
+          <div style="font-family:var(--syne);font-size:16px;font-weight:800;color:var(--red);">28g</div>
+          <div style="font-size:10px;background:var(--red-light);color:var(--red);padding:2px 7px;border-radius:8px;margin-top:2px;">7 tsp ⚠</div>
+        </div>
+      </div>
+    </div>
+    <div style="background:var(--teal-light);border-radius:10px;padding:10px;">
+      <div style="font-size:11px;color:var(--teal);font-weight:600;">💡 Today's tip</div>
+      <div style="font-size:11px;color:var(--teal);margin-top:2px;line-height:1.4;">You have 5.5g left today. Avoid sweetened drinks at dinner.</div>
+    </div>
+  </div>
+</div>
+
+<div class="stats-dark">
+  <div class="stats-dark-inner">
+    <div><div class="stat-num">4g</div><div class="stat-lbl">= 1 teaspoon of sugar</div></div>
+    <div><div class="stat-num">25g</div><div class="stat-lbl">WHO adult daily limit</div></div>
+    <div><div class="stat-num">8,000+</div><div class="stat-lbl">Indian products tracked</div></div>
+    <div><div class="stat-num">60+</div><div class="stat-lbl">Names sugar hides under</div></div>
+  </div>
+</div>
+
+<div id="features" class="features-section">
+  <div style="text-align:center;margin-bottom:2.5rem;">
+    <div style="font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--orange);margin-bottom:.75rem;">What SugarWatch does</div>
+    <h2 style="font-family:var(--syne);font-size:2rem;font-weight:800;">Everything you need to stay in control</h2>
+  </div>
+  <div class="features-grid">
+    <% const feats = [
+      { icon:'📸', bg:'#FBF0EA', title:'Barcode Scanner',        desc:'Point at any Indian packaged food. Get sugar in teaspoons, danger rating, and hidden sugar alerts instantly.' },
+      { icon:'📊', bg:'#E2F4EE', title:'Daily Tracker',          desc:'Log every meal and see your running total vs the 25g WHO limit. Smart tips when you are close to the edge.' },
+      { icon:'🔍', bg:'#FEF3DC', title:'Hidden Sugar Detector',  desc:'Scans ingredient lists for 60+ sugar aliases — dextrose, maltose, corn syrup, evaporated cane juice.' },
+      { icon:'🇮🇳', bg:'#FAEAEA', title:'India-first Database',   desc:'Built for Haldiram\'s, MTR, Britannia, Parle, ITC, Nestlé India. Not a generic global app.' },
+      { icon:'📅', bg:'#EEF0FB', title:'Weekly Trends',          desc:'7-day bar chart with meal-by-meal breakdowns. Spot which days you overshoot and why.' },
+      { icon:'⚡', bg:'#F7F5F0', title:'Instant Conversions',    desc:'Every gram → teaspoon automatically. Because you spoon sugar into chai, not weigh it.' }
+    ] %>
+    <% feats.forEach(f => { %>
+    <div class="feat-card">
+      <div class="feat-icon" style="background:<%= f.bg %>;"><%= f.icon %></div>
+      <div class="feat-title"><%= f.title %></div>
+      <p class="feat-desc"><%= f.desc %></p>
+    </div>
+    <% }) %>
+  </div>
+</div>
+
+<div class="cta-band" id="how">
+  <h2>Start tracking your sugar today</h2>
+  <p>Free forever. Takes 30 seconds to create an account.</p>
+  <a href="/auth/signup" class="btn-white">Create free account</a>
+</div>
+
+<footer class="landing-footer">
+  <p>© 2026 SugarWatch. Made with ❤️ in India. Sugar limits based on WHO guidelines (25g/day for adults).</p>
+</footer>

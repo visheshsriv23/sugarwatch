@@ -1,0 +1,107 @@
+<div class="auth-page">
+  <!-- Left panel -->
+  <div class="auth-left">
+    <div class="auth-logo">Sugar<span>Watch</span></div>
+    <div class="auth-tagline">Start tracking your <em>sugar</em> in under 60 seconds</div>
+    <p class="auth-desc" style="margin-top:1rem;">Free forever. No credit card. Works with 8,000+ Indian products.</p>
+    <div style="margin-top:2rem;">
+      <div class="auth-feature"><div class="auth-feature-dot"></div><p>Scan barcodes of Indian packaged food</p></div>
+      <div class="auth-feature"><div class="auth-feature-dot"></div><p>Daily & weekly sugar tracking dashboard</p></div>
+      <div class="auth-feature"><div class="auth-feature-dot"></div><p>Set your own daily sugar limit</p></div>
+      <div class="auth-feature"><div class="auth-feature-dot"></div><p>Personalised health tips every day</p></div>
+    </div>
+    <div style="margin-top:2.5rem;display:flex;gap:16px;">
+      <div style="text-align:center;">
+        <div style="font-family:var(--syne);font-size:1.5rem;font-weight:800;color:#fff;">50K+</div>
+        <div style="font-size:11px;color:rgba(255,255,255,.4);">Users</div>
+      </div>
+      <div style="width:1px;background:rgba(255,255,255,.1);"></div>
+      <div style="text-align:center;">
+        <div style="font-family:var(--syne);font-size:1.5rem;font-weight:800;color:#fff;">8K+</div>
+        <div style="font-size:11px;color:rgba(255,255,255,.4);">Products</div>
+      </div>
+      <div style="width:1px;background:rgba(255,255,255,.1);"></div>
+      <div style="text-align:center;">
+        <div style="font-family:var(--syne);font-size:1.5rem;font-weight:800;color:#fff;">4.8★</div>
+        <div style="font-size:11px;color:rgba(255,255,255,.4);">Rating</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Right panel -->
+  <div class="auth-right">
+    <div class="auth-box">
+      <% if (error && error.length > 0) { %>
+        <div class="alert alert-error" style="margin-bottom:1.25rem;">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
+          <%= error[0] %>
+        </div>
+      <% } %>
+
+      <h2 class="auth-title">Create your account</h2>
+      <p class="auth-sub">Free forever — no credit card needed</p>
+
+      <form action="/auth/signup" method="POST">
+        <div class="form-group">
+          <label class="form-label" for="name">Full name</label>
+          <input class="form-control" type="text" id="name" name="name" placeholder="Rahul Sharma" required autocomplete="name"/>
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="email">Email address</label>
+          <input class="form-control" type="email" id="email" name="email" placeholder="rahul@example.com" required autocomplete="email"/>
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="password">Password</label>
+          <div style="position:relative;">
+            <input class="form-control" type="password" id="password" name="password" placeholder="Minimum 6 characters" required autocomplete="new-password"/>
+            <button type="button" onclick="togglePassword('password')" style="position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:var(--muted);">
+              <svg id="eye-password" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+            </button>
+          </div>
+          <div class="form-hint">Minimum 6 characters</div>
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="confirmPassword">Confirm password</label>
+          <input class="form-control" type="password" id="confirmPassword" name="confirmPassword" placeholder="Repeat your password" required autocomplete="new-password"/>
+        </div>
+
+        <!-- Password strength bar -->
+        <div style="margin-bottom:1rem;">
+          <div style="height:4px;background:var(--border);border-radius:2px;overflow:hidden;">
+            <div id="strength-bar" style="height:100%;width:0;border-radius:2px;transition:all .3s;"></div>
+          </div>
+          <div id="strength-label" style="font-size:11px;color:var(--muted);margin-top:4px;"></div>
+        </div>
+
+        <button type="submit" class="btn btn-primary w-full" style="justify-content:center;">
+          Create Free Account
+        </button>
+        <p style="font-size:11px;color:var(--muted);text-align:center;margin-top:.75rem;">
+          By signing up you agree to our <a href="#" style="color:var(--orange);">Terms</a> & <a href="#" style="color:var(--orange);">Privacy Policy</a>
+        </p>
+      </form>
+
+      <div class="auth-link">Already have an account? <a href="/auth/login">Sign in</a></div>
+    </div>
+  </div>
+</div>
+
+<script>
+document.getElementById('password').addEventListener('input', function() {
+  const v = this.value;
+  const bar = document.getElementById('strength-bar');
+  const lbl = document.getElementById('strength-label');
+  let strength = 0;
+  if (v.length >= 6) strength++;
+  if (v.length >= 10) strength++;
+  if (/[A-Z]/.test(v)) strength++;
+  if (/[0-9]/.test(v)) strength++;
+  if (/[^A-Za-z0-9]/.test(v)) strength++;
+  const colors = ['', '#ef4444', '#f97316', '#eab308', '#22c55e', '#16a34a'];
+  const labels = ['', 'Very weak', 'Weak', 'Fair', 'Strong', 'Very strong'];
+  bar.style.width = (strength * 20) + '%';
+  bar.style.background = colors[strength] || '';
+  lbl.textContent = v.length ? labels[strength] : '';
+  lbl.style.color = colors[strength] || '';
+});
+</script>

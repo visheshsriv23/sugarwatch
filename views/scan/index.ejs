@@ -1,0 +1,448 @@
+<!-- State 1: Scanner -->
+<div id="state-viewfinder" class="scan-state active">
+  <div class="grid-2">
+    <!-- Scanner UI -->
+    <div>
+      <div class="card mb-2">
+        <div class="card-header">
+          <span class="card-title">Barcode Scanner</span>
+          <span id="camera-status" class="badge badge-info">Initializing...</span>
+        </div>
+        <div class="card-body">
+         <div class="viewfinder" style="position: relative; overflow: hidden;">
+    <div id="interactive" style="width: 100%; min-height: 250px;"></div>
+    
+    <div class="vf-corner vf-tl" style="z-index: 10; pointer-events: none;"></div>
+    <div class="vf-corner vf-tr" style="z-index: 10; pointer-events: none;"></div>
+    <div class="vf-corner vf-bl" style="z-index: 10; pointer-events: none;"></div>
+    <div class="vf-corner vf-br" style="z-index: 10; pointer-events: none;"></div>
+    <div class="scan-line" style="z-index: 11; pointer-events: none;"></div>
+</div>
+            <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;opacity:.12;">
+              <svg width="90" height="65" viewBox="0 0 90 65" fill="none"><rect x="2" y="8" width="5" height="49" fill="#fff"/><rect x="11" y="8" width="3" height="49" fill="#fff"/><rect x="18" y="8" width="7" height="49" fill="#fff"/><rect x="29" y="8" width="3" height="49" fill="#fff"/><rect x="36" y="8" width="5" height="49" fill="#fff"/><rect x="45" y="8" width="3" height="49" fill="#fff"/><rect x="52" y="8" width="7" height="49" fill="#fff"/><rect x="63" y="8" width="3" height="49" fill="#fff"/><rect x="70" y="8" width="5" height="49" fill="#fff"/><rect x="79" y="8" width="3" height="49" fill="#fff"/><rect x="86" y="8" width="3" height="49" fill="#fff"/></svg>
+            </div>
+            <div style="position:absolute;bottom:14px;left:50%;transform:translateX(-50%);font-size:11px;color:rgba(255,255,255,.5);white-space:nowrap;">Align barcode within frame</div>
+          </div>
+          <p style="font-size:12px;color:var(--muted);text-align:center;margin-bottom:1rem;">Camera scanning requires the mobile app. Select a product below to demo.</p>
+          <div style="display:flex;gap:8px;">
+            <input class="form-control" type="text" id="manualBarcode" placeholder="Enter barcode manually..." style="flex:1;"/>
+            <button class="btn btn-outline" onclick="lookupBarcode()">Lookup</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Manual Add Form -->
+    <div>
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">Add food manually</span>
+        </div>
+        <div class="card-body">
+          <form action="/scan/log" method="POST">
+            <div class="form-group">
+              <label class="form-label">Product name *</label>
+              <input class="form-control" type="text" name="productName" placeholder="e.g. Parle-G Biscuits" required/>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label class="form-label">Brand</label>
+                <input class="form-control" type="text" name="brand" placeholder="e.g. Parle"/>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Serving size</label>
+                <input class="form-control" type="text" name="servingSize" placeholder="e.g. 100g"/>
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label class="form-label">Sugar (grams) *</label>
+                <input class="form-control" type="number" name="sugarG" min="0" max="500" step="0.1" placeholder="0.0" required/>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Calories (kcal)</label>
+                <input class="form-control" type="number" name="calories" min="0" placeholder="0"/>
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label class="form-label">Carbs (g)</label>
+                <input class="form-control" type="number" name="carbs" min="0" step="0.1" placeholder="0.0"/>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Fat (g)</label>
+                <input class="form-control" type="number" name="fat" min="0" step="0.1" placeholder="0.0"/>
+              </div>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Meal type</label>
+              <select class="form-control form-select" name="mealType">
+                <option value="breakfast">🌅 Breakfast</option>
+                <option value="lunch">🍱 Lunch</option>
+                <option value="dinner">🌙 Dinner</option>
+                <option value="snack" selected>🍿 Snack</option>
+              </select>
+            </div>
+            <button type="submit" class="btn btn-primary w-full" style="justify-content:center;">
+              Log this food
+            </button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Sample Products -->
+  <div class="card mt-2">
+    <div class="card-header">
+      <span class="card-title">Quick scan — popular Indian products</span>
+      <span style="font-size:11px;color:var(--muted);">Click any product to demo scan</span>
+    </div>
+    <div class="card-body">
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:10px;">
+        <% const samples = [
+          { key:'parlg',   icon:'🍪', name:'Parle-G 100g',        brand:'Parle', sugar:28, cls:'danger' },
+          { key:'frooti',  icon:'🥤', name:'Frooti Mango 200ml',  brand:'Parle Agro', sugar:22, cls:'danger' },
+          { key:'maggi',   icon:'🍜', name:'Maggi Masala 70g',    brand:'Nestlé', sugar:3, cls:'ok' },
+          { key:'kurkure', icon:'🌽', name:'Kurkure Masala 50g',  brand:'PepsiCo', sugar:2, cls:'ok' },
+          { key:'goodday', icon:'🍘', name:'Good Day 75g',        brand:'Britannia', sugar:18, cls:'warn' },
+          { key:'amul',    icon:'☕', name:'Amul Kool Café 200ml',brand:'Amul', sugar:20, cls:'danger' }
+        ] %>
+        <% samples.forEach(s => { %>
+        <div onclick="startDemoScan('<%= s.key %>')" style="background:var(--bg);border:1.5px solid var(--border);border-radius:var(--radius);padding:12px;cursor:pointer;transition:all .18s;display:flex;gap:10px;align-items:center;" onmouseover="this.style.borderColor='var(--orange)'" onmouseout="this.style.borderColor='var(--border)'">
+          <div style="font-size:22px;flex-shrink:0;"><%= s.icon %></div>
+          <div>
+            <div style="font-size:12px;font-weight:600;"><%= s.name %></div>
+            <div style="font-size:10px;color:var(--muted);"><%= s.brand %></div>
+            <span class="badge badge-<%= s.cls %>" style="margin-top:4px;"><%= s.sugar %>g sugar</span>
+          </div>
+        </div>
+        <% }) %>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- State 2: Loading -->
+<div id="state-loading" class="scan-state">
+  <div class="card" style="max-width:480px;margin:2rem auto;">
+    <div class="card-body" style="text-align:center;padding:2.5rem;">
+      <div class="spinner"></div>
+      <div style="font-family:var(--syne);font-size:1rem;font-weight:700;margin-bottom:.25rem;" id="loading-name">Scanning...</div>
+      <div style="font-size:12px;color:var(--muted);margin-bottom:1.5rem;">Checking Indian food database</div>
+      <div style="text-align:left;">
+        <div class="lstep" id="lstep-1"><div class="lstep-dot">1</div> Reading barcode</div>
+        <div class="lstep" id="lstep-2"><div class="lstep-dot">2</div> Matching product in database</div>
+        <div class="lstep" id="lstep-3"><div class="lstep-dot">3</div> Calculating sugar in teaspoons</div>
+        <div class="lstep" id="lstep-4"><div class="lstep-dot">4</div> Detecting hidden sugar aliases</div>
+        <div class="lstep" id="lstep-5"><div class="lstep-dot">5</div> Generating health rating</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- State 3: Result -->
+<div id="state-result" class="scan-state">
+  <div style="max-width:560px;margin:0 auto;">
+    <div class="card mb-2">
+      <div style="padding:1.25rem 1.25rem 1rem;border-bottom:1px solid var(--border);">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;">
+          <span id="r-brand" style="background:var(--bg2);border-radius:6px;padding:3px 8px;font-size:10px;color:var(--muted);"></span>
+          <span id="r-barcode" style="font-size:10px;color:var(--hint);"></span>
+        </div>
+        <div id="r-name" style="font-family:var(--syne);font-size:1rem;font-weight:700;"></div>
+        <div id="r-serving" style="font-size:11px;color:var(--muted);margin-top:2px;"></div>
+      </div>
+      <div class="card-body">
+        <div style="text-align:center;margin-bottom:1.25rem;">
+          <div id="r-sugar-g" style="font-family:var(--syne);font-size:3rem;font-weight:800;line-height:1;"></div>
+          <div style="font-size:13px;color:var(--muted);margin-top:4px;">of sugar per serving</div>
+          <div id="r-tsp" style="font-family:var(--syne);font-size:1.1rem;font-weight:700;margin-top:6px;"></div>
+          <div id="r-tsp-icons" style="display:flex;gap:5px;justify-content:center;flex-wrap:wrap;margin:10px 0;"></div>
+        </div>
+
+        <div style="margin-bottom:1rem;">
+          <div style="display:flex;justify-content:space-between;font-size:12px;color:var(--muted);margin-bottom:6px;">
+            <span>% of daily limit (25g)</span>
+            <span id="r-pct-label" style="font-weight:600;"></span>
+          </div>
+          <div class="sugar-track"><div id="r-meter" class="sugar-fill" style="width:0;"></div></div>
+        </div>
+
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:1rem 0;">
+          <div style="background:var(--bg);border-radius:8px;padding:10px;text-align:center;">
+            <div id="r-cal" style="font-family:var(--syne);font-size:.95rem;font-weight:700;"></div>
+            <div style="font-size:10px;color:var(--muted);margin-top:2px;">Calories</div>
+          </div>
+          <div style="background:var(--bg);border-radius:8px;padding:10px;text-align:center;">
+            <div id="r-carbs" style="font-family:var(--syne);font-size:.95rem;font-weight:700;"></div>
+            <div style="font-size:10px;color:var(--muted);margin-top:2px;">Carbs</div>
+          </div>
+          <div style="background:var(--bg);border-radius:8px;padding:10px;text-align:center;">
+            <div id="r-fat" style="font-family:var(--syne);font-size:.95rem;font-weight:700;"></div>
+            <div style="font-size:10px;color:var(--muted);margin-top:2px;">Fat</div>
+          </div>
+        </div>
+
+        <div id="r-alert" style="border-radius:var(--radius);padding:14px;display:flex;gap:10px;align-items:flex-start;margin-bottom:1rem;">
+          <div id="r-alert-icon" style="width:20px;height:20px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;color:#fff;flex-shrink:0;margin-top:1px;">!</div>
+          <div>
+            <div id="r-alert-title" style="font-size:13px;font-weight:600;margin-bottom:3px;"></div>
+            <div id="r-alert-body" style="font-size:12px;opacity:.85;line-height:1.5;"></div>
+          </div>
+        </div>
+
+        <!-- Log form hidden -->
+        <form action="/scan/log" method="POST" id="logForm">
+          <input type="hidden" name="productName" id="f-name"/>
+          <input type="hidden" name="brand" id="f-brand"/>
+          <input type="hidden" name="sugarG" id="f-sugar"/>
+          <input type="hidden" name="calories" id="f-cal"/>
+          <input type="hidden" name="carbs" id="f-carbs"/>
+          <input type="hidden" name="fat" id="f-fat"/>
+          <input type="hidden" name="servingSize" id="f-serving"/>
+          <input type="hidden" name="barcode" id="f-barcode"/>
+          <div class="form-group">
+            <label class="form-label">Meal type</label>
+            <select class="form-control form-select" name="mealType">
+              <option value="breakfast">🌅 Breakfast</option>
+              <option value="lunch">🍱 Lunch</option>
+              <option value="dinner">🌙 Dinner</option>
+              <option value="snack" selected>🍿 Snack</option>
+            </select>
+          </div>
+          <div style="display:flex;gap:8px;">
+            <button type="button" class="btn btn-outline" onclick="resetScan()" style="flex:1;justify-content:center;">← Scan again</button>
+            <button type="submit" class="btn btn-primary" style="flex:2;justify-content:center;">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20,6 9,17 4,12"/></svg>
+              Add to food log
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+<script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
+<script>
+// 1. Initialize the library
+const html5QrCode = new Html5Qrcode("interactive");
+
+// 2. Define what happens when a barcode is found
+const qrCodeSuccessCallback = (decodedText) => {
+    console.log("Barcode Found: " + decodedText);
+    html5QrCode.stop().then(() => {
+        // Redirect to your lookup function
+        lookupBarcode(decodedText); 
+    });
+};
+
+// 3. Force the camera to start
+function forceStartScanner() {
+    const config = { fps: 10, qrbox: { width: 250, height: 150 } };
+    
+    html5QrCode.start(
+        { facingMode: "user" }, // Forces Laptop Webcam
+        config,
+        qrCodeSuccessCallback
+    ).then(() => {
+        // UI Updates once camera is LIVE
+        document.getElementById('camera-status').innerText = 'Live';
+        document.getElementById('camera-status').className = 'badge badge-success';
+        
+        // Hide the "Requires mobile app" text
+        const demoText = document.querySelector('p[style*="font-size: 12px"]');
+        if(demoText) demoText.style.display = 'none';
+        
+    }).catch(err => {
+        console.error("Camera Error: ", err);
+        document.getElementById('interactive').innerHTML = 
+            `<div style="color:white; text-align:center; padding:50px;">
+                Camera Access Denied.<br>Please click the Lock icon in the URL bar and Allow Camera.
+            </div>`;
+    });
+}
+
+// 4. Run immediately when DOM is ready
+if (document.readyState === "complete" || document.readyState === "interactive") {
+    forceStartScanner();
+} else {
+    document.addEventListener("DOMContentLoaded", forceStartScanner);
+}
+
+  // Helper to handle the lookup
+  function handleScanSuccess(barcode) {
+      // Trigger your State 2: Loading UI
+      document.getElementById('state-viewfinder').classList.remove('scan-state-active');
+      document.getElementById('state-loading').classList.add('scan-state-active');
+
+      // Fetch from your backend route
+      fetch(`/scan/lookup?barcode=${barcode}`)
+          .then(res => res.json())
+          .then(data => {
+              if (data.success) {
+                  // This is where you'd populate State 3: Result
+                  // You can reuse your demo logic here but with real data
+                  renderResult(data.product);
+              } else {
+                  alert("Product not found in database.");
+                  resetScan(); // Function to go back to scanner state
+              }
+          });
+  }
+
+  window.addEventListener('load', startScanner);
+
+// Call this function when the page loads
+window.addEventListener('load', startWebcam);
+const demoProducts = {
+  parlg:   { name:'Parle-G Original Gluco Biscuits', brand:'Parle Products',  barcode:'8901719110024', serving:'Per 100g', sugarG:28, tsp:7,    pct:112, cls:'danger', cal:462, carbs:'76g', fat:'11g', alertTitle:'Hidden sugar detected',         alertBody:'Contains dextrose and refined wheat flour — both spike blood glucose rapidly. Often mistaken as a healthy biscuit.' },
+  frooti:  { name:'Frooti Mango Drink 200ml',        brand:'Parle Agro',       barcode:'8901054000121', serving:'Per 200ml',sugarG:22, tsp:5.5,  pct:88,  cls:'warn',   cal:96,  carbs:'24g', fat:'0g',  alertTitle:'High sugar in one pack',        alertBody:'22g in one 200ml pack = 88% of your daily WHO limit. Fruit flavour masks how sweet it really is.' },
+  maggi:   { name:'Maggi 2-Minute Masala Noodles',   brand:'Nestlé India',     barcode:'8901058000058', serving:'Per 70g',  sugarG:3,  tsp:0.75, pct:12,  cls:'ok',     cal:316, carbs:'45g', fat:'12g', alertTitle:'Sugar is low, but watch out',   alertBody:'Contains maltodextrin and refined maida — these spike blood glucose similarly to sugar.' },
+  kurkure: { name:'Kurkure Masala Munch',            brand:'PepsiCo India',    barcode:'8901491100016', serving:'Per 50g',  sugarG:2,  tsp:0.5,  pct:8,   cls:'ok',     cal:264, carbs:'32g', fat:'14g', alertTitle:'Sugar is low, other concerns',  alertBody:'Contains TBHQ preservative and high sodium (520mg). Fine occasionally.' },
+  goodday: { name:'Good Day Cashew Biscuits',        brand:'Britannia',        barcode:'8901063000038', serving:'Per 75g',  sugarG:18, tsp:4.5,  pct:72,  cls:'warn',   cal:370, carbs:'55g', fat:'15g', alertTitle:'Moderate sugar content',        alertBody:'18g per pack is 72% of daily limit. "Cashew" sounds healthy — but the base is refined flour + sugar.' },
+  amul:    { name:'Amul Kool Café 200ml',            brand:'Amul',             barcode:'8901088000041', serving:'Per 200ml',sugarG:20, tsp:5,    pct:80,  cls:'danger', cal:122, carbs:'22g', fat:'3g',  alertTitle:'Cold coffee, hot sugar problem',alertBody:'20g = 5 teaspoons. Fructose corn syrup listed under different names in ingredients.' }
+};
+//const html5QrCode = new Html5Qrcode("interactive");
+
+const qrCodeSuccessCallback = (decodedText, decodedResult) => {
+    // Stop scanning once a barcode is found
+    html5QrCode.stop().then(() => {
+        console.log("Scan stopped. Result:", decodedText);
+        lookupBarcode(decodedText); // This calls your existing lookup function
+    });
+};
+
+const config = { 
+    fps: 10, 
+    qrbox: { width: 250, height: 150 },
+    aspectRatio: 1.0 
+};
+
+// Start the laptop camera when the page loads
+window.addEventListener('load', () => {
+    html5QrCode.start(
+        { facingMode: "user" }, // Forces laptop webcam
+        const config, // Uses the config you defined on line 307
+        qrCodeSuccessCallback
+    ).then(() => {
+        // Update your UI badge
+        const statusBadge = document.getElementById('camera-status');
+        if (statusBadge) {
+            statusBadge.innerText = 'Live';
+            statusBadge.classList.replace('badge-info', 'badge-success');
+        }
+    }).catch((err) => {
+        console.error("Camera Error:", err);
+        document.getElementById('interactive').innerHTML = 
+            `<p style="color:white; padding:20px; text-align:center;">
+                Camera blocked. Please check browser permissions!
+            </p>`;
+    });
+});
+
+// Your existing lookup function modified to handle the result
+function lookupBarcode(barcode) {
+    // Show your Loading State (State 2 in your code)
+    document.getElementById('state-viewfinder').classList.remove('scan-state-active');
+    document.getElementById('state-loading').classList.add('scan-state-active');
+
+    fetch(`/scan/lookup?barcode=${barcode}`)
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                showResult(data.product); // This should trigger your State 3 (Result)
+            } else {
+                alert("Product not found in database!");
+                resetScan();
+            }
+        })
+        .catch(err => console.error("Lookup error:", err));
+}
+
+function startDemoScan(key) {
+  const p = demoProducts[key];
+  document.getElementById('state-viewfinder').classList.remove('active');
+  document.getElementById('state-loading').classList.add('active');
+  document.getElementById('loading-name').textContent = 'Found: ' + p.name;
+  const steps = ['lstep-1','lstep-2','lstep-3','lstep-4','lstep-5'];
+  steps.forEach(s => { document.getElementById(s).className = 'lstep'; document.getElementById(s).querySelector('.lstep-dot').textContent = steps.indexOf(s)+1; });
+  document.getElementById('lstep-1').classList.add('current');
+  let step = 0;
+  const iv = setInterval(() => {
+    const el = document.getElementById(steps[step]);
+    el.className = 'lstep done'; el.querySelector('.lstep-dot').textContent = '✓';
+    step++;
+    if (step < steps.length) document.getElementById(steps[step]).classList.add('current');
+    else { clearInterval(iv); setTimeout(() => showResult(p), 350); }
+  }, 400);
+}
+
+function showResult(p) {
+  document.getElementById('state-loading').classList.remove('active');
+  document.getElementById('state-result').classList.add('active');
+  document.getElementById('r-brand').textContent = p.brand;
+  document.getElementById('r-barcode').textContent = 'Barcode: ' + p.barcode;
+  document.getElementById('r-name').textContent = p.name;
+  document.getElementById('r-serving').textContent = p.serving;
+  const gEl = document.getElementById('r-sugar-g');
+  gEl.textContent = p.sugarG + 'g';
+  gEl.style.color = p.cls === 'danger' ? 'var(--red)' : p.cls === 'warn' ? 'var(--amber)' : 'var(--teal)';
+  document.getElementById('r-tsp').textContent = '= ' + p.tsp + ' teaspoon' + (p.tsp !== 1 ? 's' : '');
+  const icons = document.getElementById('r-tsp-icons');
+  icons.innerHTML = '';
+  for (let i = 0; i < 7; i++) {
+    const d = document.createElement('div');
+    const filled = i < Math.floor(p.tsp);
+    d.style.cssText = `width:18px;height:18px;border-radius:3px;background:${filled ? 'var(--orange)' : '#F0EDE8'};${i===Math.floor(p.tsp)&&p.tsp%1>0?'opacity:.4;background:var(--orange);':''}`;
+    icons.appendChild(d);
+  }
+  document.getElementById('r-pct-label').textContent = p.pct + '%';
+  document.getElementById('r-meter').style.width = Math.min(p.pct, 100) + '%';
+  document.getElementById('r-cal').textContent = p.cal;
+  document.getElementById('r-carbs').textContent = p.carbs;
+  document.getElementById('r-fat').textContent = p.fat;
+  const alertEl = document.getElementById('r-alert');
+  const clrMap = { danger: ['var(--red-light)','var(--red)'], warn: ['var(--amber-light)','var(--amber)'], ok: ['var(--teal-light)','var(--teal)'] };
+  const [bg, clr] = clrMap[p.cls];
+  alertEl.style.background = bg;
+  document.getElementById('r-alert-icon').style.background = clr;
+  document.getElementById('r-alert-title').style.color = clr;
+  document.getElementById('r-alert-title').textContent = p.alertTitle;
+  document.getElementById('r-alert-body').style.color = clr;
+  document.getElementById('r-alert-body').textContent = p.alertBody;
+  document.getElementById('f-name').value = p.name;
+  document.getElementById('f-brand').value = p.brand;
+  document.getElementById('f-sugar').value = p.sugarG;
+  document.getElementById('f-cal').value = p.cal;
+  document.getElementById('f-carbs').value = parseInt(p.carbs);
+  document.getElementById('f-fat').value = parseInt(p.fat);
+  document.getElementById('f-serving').value = p.serving;
+  document.getElementById('f-barcode').value = p.barcode;
+}
+
+function resetScan() {
+  document.getElementById('state-result').classList.remove('active');
+  document.getElementById('state-loading').classList.remove('active');
+  document.getElementById('state-viewfinder').classList.add('active');
+}
+
+async function lookupBarcode(scannedCode) {
+    // If we have a scannedCode from the camera, use it. 
+    // Otherwise, grab it from the manual input box.
+    const bc = scannedCode || document.getElementById('manualBarcode').value;
+    
+    if (!bc) return;
+  const res = await fetch('/scan/lookup?barcode=' + bc);
+  const data = await res.json();
+  if (data.success) {
+    const p = data.product;
+    showResult({ name:p.name, brand:p.brand, barcode:p.barcode, serving:p.servingSize, sugarG:p.sugarG, tsp:p.tsp, pct:p.pctDailyLimit, cls:p.rating, cal:p.calories, carbs:p.carbs+'g', fat:p.fat+'g', alertTitle:'Product found', alertBody:`${p.name} contains ${p.sugarG}g of sugar per ${p.servingSize}.` });
+    document.getElementById('state-viewfinder').classList.remove('active');
+    document.getElementById('state-result').classList.add('active');
+  } else {
+    alert('Product not found. Try entering details manually.');
+  }
+}
+</script>
+<%- include('../partials/footer') %>

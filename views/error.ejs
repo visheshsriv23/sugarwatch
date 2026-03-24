@@ -1,0 +1,9 @@
+<div class="error-page">
+  <div class="error-code">500</div>
+  <div class="error-msg">Something went wrong</div>
+  <p style="font-size:13px;color:var(--muted);margin-bottom:1.5rem;">An unexpected error occurred. Please try again.</p>
+  <% if (process.env.NODE_ENV === 'development' && typeof err !== 'undefined') { %>
+    <pre style="background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:1rem;font-size:11px;text-align:left;max-width:600px;overflow:auto;margin-bottom:1.5rem;"><%= err.stack %></pre>
+  <% } %>
+  <a href="/dashboard" class="btn btn-primary">Go to Dashboard</a>
+</div>

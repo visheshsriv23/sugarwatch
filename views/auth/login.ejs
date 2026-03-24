@@ -1,0 +1,63 @@
+<div class="auth-page">
+  <!-- Left panel -->
+  <div class="auth-left">
+    <div class="auth-logo">Sugar<span>Watch</span></div>
+    <div class="auth-tagline">Know the <em>hidden sugars</em> in your daily snacks</div>
+    <p class="auth-desc" style="margin-top:1rem;">Track sugar in teaspoons, not grams. Built for Indian packaged foods.</p>
+    <div style="margin-top:2rem;">
+      <div class="auth-feature"><div class="auth-feature-dot"></div><p>8,000+ Indian products in our database</p></div>
+      <div class="auth-feature"><div class="auth-feature-dot"></div><p>Instant gram → teaspoon conversion</p></div>
+      <div class="auth-feature"><div class="auth-feature-dot"></div><p>WHO-aligned 25g daily sugar limit</p></div>
+      <div class="auth-feature"><div class="auth-feature-dot"></div><p>Hidden sugar alias detection</p></div>
+    </div>
+    <div style="margin-top:3rem;padding:1.25rem;background:rgba(255,255,255,.06);border-radius:12px;">
+      <div style="display:flex;gap:3px;margin-bottom:.75rem;">
+        <% for(let i=0;i<5;i++) { %><span style="color:#F59E0B;font-size:14px;">★</span><% } %>
+      </div>
+      <p style="font-size:13px;color:rgba(255,255,255,.6);line-height:1.6;">"Finally an app that tells me how many teaspoons of sugar are in my Frooti. I had no idea it was 5.5 tsp in one bottle!"</p>
+      <p style="font-size:11px;color:rgba(255,255,255,.35);margin-top:.75rem;">— Priya S., Mumbai</p>
+    </div>
+  </div>
+
+  <!-- Right panel -->
+  <div class="auth-right">
+    <div class="auth-box">
+      <% if (error && error.length > 0) { %>
+        <div class="alert alert-error" style="margin-bottom:1.25rem;">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
+          <%= error[0] %>
+        </div>
+      <% } %>
+      <% if (success && success.length > 0) { %>
+        <div class="alert alert-success" style="margin-bottom:1.25rem;">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22,4 12,14.01 9,11.01"/></svg>
+          <%= success[0] %>
+        </div>
+      <% } %>
+
+      <h2 class="auth-title">Welcome back</h2>
+      <p class="auth-sub">Sign in to your SugarWatch account</p>
+
+      <form action="/auth/login" method="POST">
+        <div class="form-group">
+          <label class="form-label" for="email">Email address</label>
+          <input class="form-control" type="email" id="email" name="email" placeholder="you@example.com" required autocomplete="email"/>
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="password">Password</label>
+          <div style="position:relative;">
+            <input class="form-control" type="password" id="password" name="password" placeholder="Your password" required autocomplete="current-password"/>
+            <button type="button" onclick="togglePassword('password')" style="position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:var(--muted);">
+              <svg id="eye-password" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+            </button>
+          </div>
+        </div>
+        <button type="submit" class="btn btn-primary w-full" style="justify-content:center;margin-top:.5rem;">
+          Sign in to SugarWatch
+        </button>
+      </form>
+
+      <div class="auth-link">Don't have an account? <a href="/auth/signup">Create one free</a></div>
+    </div>
+  </div>
+</div>

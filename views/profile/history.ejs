@@ -1,0 +1,81 @@
+<div class="card">
+  <div class="card-header">
+    <span class="card-title">All logged foods (<%= total %> total)</span>
+    <a href="/scan" class="btn btn-primary btn-sm">+ Log food</a>
+  </div>
+
+  <% if (logs.length === 0) { %>
+    <div class="card-body" style="text-align:center;padding:3rem;">
+      <div style="font-size:2.5rem;margin-bottom:.75rem;">📋</div>
+      <div style="font-size:15px;font-weight:600;margin-bottom:.5rem;">No food logged yet</div>
+      <p style="font-size:13px;color:var(--muted);">Start scanning products to build your history.</p>
+    </div>
+  <% } else { %>
+    <div class="table-wrapper">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Product</th>
+            <th>Brand</th>
+            <th>Meal</th>
+            <th>Sugar</th>
+            <th>Teaspoons</th>
+            <th>Calories</th>
+            <th>Date & Time</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% logs.forEach(log => { 
+            const mealEmoji = { breakfast:'🌅', lunch:'🍱', dinner:'🌙', snack:'🍿' };
+            const sugarColor = log.sugarG >= 20 ? 'var(--red)' : log.sugarG >= 10 ? 'var(--amber)' : 'var(--teal)';
+          %>
+          <tr>
+            <td>
+              <div style="font-weight:600;"><%= log.productName %></div>
+              <div style="font-size:11px;color:var(--muted);"><%= log.servingSize %></div>
+            </td>
+            <td style="font-size:13px;color:var(--muted);"><%= log.brand || '—' %></td>
+            <td>
+              <span style="font-size:12px;text-transform:capitalize;">
+                <%= mealEmoji[log.mealType] %> <%= log.mealType %>
+              </span>
+            </td>
+            <td><strong style="font-family:var(--syne);color:<%= sugarColor %>;"><%= log.sugarG %>g</strong></td>
+            <td style="font-size:13px;"><%= log.tsp %> tsp</td>
+            <td style="font-size:13px;"><%= log.calories || 0 %> kcal</td>
+            <td style="font-size:12px;color:var(--muted);">
+              <%= new Date(log.loggedAt).toLocaleDateString('en-IN', { day:'numeric', month:'short', year:'numeric' }) %>
+              <div style="font-size:10px;"><%= new Date(log.loggedAt).toLocaleTimeString('en-IN', { hour:'2-digit', minute:'2-digit' }) %></div>
+            </td>
+          </tr>
+          <% }) %>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Pagination -->
+    <div style="padding:1rem 1.25rem;border-top:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;">
+      <span style="font-size:12px;color:var(--muted);">
+        Page <%= currentPage %> of <%= totalPages %> · <%= total %> entries
+      </span>
+      <div class="pagination">
+        <% if (currentPage > 1) { %>
+          <a href="?page=<%= currentPage-1 %>" class="page-btn">‹</a>
+        <% } else { %>
+          <span class="page-btn disabled">‹</span>
+        <% } %>
+
+        <% const startP = Math.max(1, currentPage-2); const endP = Math.min(totalPages, currentPage+2); %>
+        <% for (let i = startP; i <= endP; i++) { %>
+          <a href="?page=<%= i %>" class="page-btn <%= i === currentPage ? 'active' : '' %>"><%= i %></a>
+        <% } %>
+
+        <% if (currentPage < totalPages) { %>
+          <a href="?page=<%= currentPage+1 %>" class="page-btn">›</a>
+        <% } else { %>
+          <span class="page-btn disabled">›</span>
+        <% } %>
+      </div>
+    </div>
+  <% } %>
+</div>

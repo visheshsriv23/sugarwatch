@@ -1,0 +1,14 @@
+# Dependency folders
+node_modules/
+npm-debug.log
+
+# Environment variables (Crucial for security!)
+.env
+.env.test
+
+# Git files
+.git
+.gitignore
+
+# OS Junk
+.DS_Store
