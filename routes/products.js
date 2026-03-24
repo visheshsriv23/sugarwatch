@@ -83,7 +83,7 @@ router.post('/log-food/:id', ensureAuth, async (req, res) => {
             productId: product._id,
             productName: product.name,
             amountEaten: gramsEaten,
-            sugarConsumed: sugarConsumed.toFixed(2),
+            sugarG: sugarConsumed,
             date: new Date()
         });
 
