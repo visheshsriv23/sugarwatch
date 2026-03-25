@@ -21,7 +21,7 @@ router.get('/', ensureAuth, async (req, res) => {
             // else if (rating === 'warn') filter.rating = 'warn';
             // else if (rating === 'danger') filter.rating = 'danger';
 
-        const products = await Product.find(filter).sort({ sugarG: -1 }).limit(50);
+        const products = await Product.find(filter).sort({ sugarG: -1 }).lean();
         
         // This is the line that makes your categories dynamic!
         const categories = ['All', 'Biscuits', 'Beverages', 'Snacks', 'Noodles', 'Dairy', 'Sauces', 'Cereals', 'Other',(await Product.distinct('category'))];
