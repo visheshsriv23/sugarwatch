@@ -1,50 +1,59 @@
 const express = require('express');
 const router = express.Router();
-const { ensureAuth } = require('../middleware/auth');
+const axios = require('axios'); // For API calls
 const Product = require('../models/Product');
-const FoodLog = require('../models/FoodLog');
+const { ensureAuth } = require('../middleware/auth');
 
-// GET /scan
-router.get('/', ensureAuth, (req, res) => {
-  res.render('scan/index', { title: 'Scan Product', product: null, layout: 'layouts/main' });
-});
+// GET /products/barcode/:barcode
+router.get('/barcode/:barcode', ensureAuth, async (req, res) => {
+    const code = req.params.barcode;
 
-// GET /scan/lookup?barcode=xxx  (AJAX)
-router.get('/lookup', ensureAuth, async (req, res) => {
-  try {
-    const { barcode } = req.query;
-    if (!barcode) return res.json({ success: false, message: 'No barcode provided' });
-    const product = await Product.findOne({ barcode });
-    if (!product) return res.json({ success: false, message: 'Product not found in database' });
-    res.json({ success: true, product });
-  } catch (err) {
-    res.status(500).json({ success: false, message: 'Server error' });
-  }
-});
+    try {
+        // 1. Check local Database first
+        let product = await Product.findOne({ barcode: code });
 
-// POST /scan/log — log a scanned or manual product
-router.post('/log', ensureAuth, async (req, res) => {
-  try {
-    const { productName, brand, sugarG, calories, carbs, fat, mealType, servingSize, barcode } = req.body;
-    await FoodLog.create({
-      user: req.user._id,
-      productName,
-      brand: brand || '',
-      sugarG: parseFloat(sugarG) || 0,
-      calories: parseFloat(calories) || 0,
-      carbs: parseFloat(carbs) || 0,
-      fat: parseFloat(fat) || 0,
-      mealType: mealType || 'snack',
-      servingSize: servingSize || '100g',
-      barcode: barcode || ''
-    });
-    req.flash('success', `${productName} logged successfully!`);
-    res.redirect('/dashboard');
-  } catch (err) {
-    console.error(err);
-    req.flash('error', 'Could not log this item. Please try again.');
-    res.redirect('/scan');
-  }
+        if (product) {
+            return res.render('products/detail', { 
+                product, 
+                title: product.name,
+                layout: 'layouts/main' 
+            });
+        }
+
+        // 2. Not in DB? Fetch from Open Food Facts API
+        const apiUrl = `https://world.openfoodfacts.org/api/v0/product/${code}.json`;
+        const response = await axios.get(apiUrl);
+
+        if (response.data.status === 1) {
+            const data = response.data.product;
+
+            // Map API data to your Schema
+            const externalProduct = {
+                _id: 'external_' + code, // Temporary ID for rendering
+                name: data.product_name || 'Unknown Product',
+                brand: data.brands || 'Unknown Brand',
+                barcode: code,
+                sugarG: parseFloat(data.nutriments['sugars_100g']) || 0,
+                servingSize: data.serving_size || '100g',
+                calories: data.nutriments['energy-kcal_100g'] || 0,
+                category: data.categories ? data.categories.split(',')[0] : 'General',
+                isExternal: true // Flag to show it's from API
+            };
+
+            res.render('products/detail', { 
+                product: externalProduct, 
+                title: externalProduct.name,
+                layout: 'layouts/main'
+            });
+
+        } else {
+            req.flash('error', 'Product not found. Try entering details manually.');
+            res.redirect('/products');
+        }
+    } catch (err) {
+        console.error("Scanning Error:", err);
+        res.redirect('/dashboard');
+    }
 });
 
 module.exports = router;

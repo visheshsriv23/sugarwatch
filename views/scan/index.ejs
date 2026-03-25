@@ -2,7 +2,7 @@
 <div id="state-viewfinder" class="scan-state active">
   <div class="grid-2">
     <!-- Scanner UI -->
-    <div>
+    <!-- <div>
       <div class="card mb-2">
         <div class="card-header">
           <span class="card-title">Barcode Scanner</span>
@@ -30,7 +30,24 @@
           </div>
         </div>
       </div>
+    </div> -->
+    <div class="container mt-4">
+    <h2 class="text-center mb-4">Scan Product Barcode</h2>
+    
+    <div id="reader" style="width: 100%; max-width: 500px; margin: auto; border-radius: 15px; overflow: hidden; border: 2px solid var(--amber);"></div>
+    
+    <div id="scan-status" class="text-center mt-3">
+        <p class="text-muted">Align the barcode within the frame</p>
     </div>
+
+    <div class="mt-4 text-center">
+        <p>Can't scan? Enter manually:</p>
+        <form action="/products/search-barcode" method="POST" class="d-flex justify-content-center">
+            <input type="text" name="barcode" class="form-control w-50" placeholder="Enter 13-digit code">
+            <button type="submit" class="btn btn-primary ms-2">Go</button>
+        </form>
+    </div>
+</div>
 
     <!-- Manual Add Form -->
     <div>
@@ -223,226 +240,36 @@
     </div>
   </div>
 </div>
-<script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
+
+<script src="https://unpkg.com/html5-qrcode"></script>
+
 <script>
-// 1. Initialize the library
-const html5QrCode = new Html5Qrcode("interactive");
+    const statusText = document.getElementById('scan-status');
 
-// 2. Define what happens when a barcode is found
-const qrCodeSuccessCallback = (decodedText) => {
-    console.log("Barcode Found: " + decodedText);
-    html5QrCode.stop().then(() => {
-        // Redirect to your lookup function
-        lookupBarcode(decodedText); 
-    });
-};
-
-// 3. Force the camera to start
-function forceStartScanner() {
-    const config = { fps: 10, qrbox: { width: 250, height: 150 } };
-    
-    html5QrCode.start(
-        { facingMode: "user" }, // Forces Laptop Webcam
-        config,
-        qrCodeSuccessCallback
-    ).then(() => {
-        // UI Updates once camera is LIVE
-        document.getElementById('camera-status').innerText = 'Live';
-        document.getElementById('camera-status').className = 'badge badge-success';
+    function onScanSuccess(decodedText, decodedResult) {
+        // Stop scanning immediately to prevent multiple triggers
+        html5QrcodeScanner.clear();
         
-        // Hide the "Requires mobile app" text
-        const demoText = document.querySelector('p[style*="font-size: 12px"]');
-        if(demoText) demoText.style.display = 'none';
+        statusText.innerHTML = `<div class="spinner-border text-warning" role="status"></div><p>Product Found! Fetching data...</p>`;
         
-    }).catch(err => {
-        console.error("Camera Error: ", err);
-        document.getElementById('interactive').innerHTML = 
-            `<div style="color:white; text-align:center; padding:50px;">
-                Camera Access Denied.<br>Please click the Lock icon in the URL bar and Allow Camera.
-            </div>`;
-    });
-}
+        // Step 2: Redirect to your backend route with the barcode
+        window.location.href = `/products/barcode/${decodedText}`;
+    }
 
-// 4. Run immediately when DOM is ready
-if (document.readyState === "complete" || document.readyState === "interactive") {
-    forceStartScanner();
-} else {
-    document.addEventListener("DOMContentLoaded", forceStartScanner);
-}
+    function onScanFailure(error) {
+        // Frame-by-frame errors are ignored to keep the console clean
+    }
 
-  // Helper to handle the lookup
-  function handleScanSuccess(barcode) {
-      // Trigger your State 2: Loading UI
-      document.getElementById('state-viewfinder').classList.remove('scan-state-active');
-      document.getElementById('state-loading').classList.add('scan-state-active');
-
-      // Fetch from your backend route
-      fetch(`/scan/lookup?barcode=${barcode}`)
-          .then(res => res.json())
-          .then(data => {
-              if (data.success) {
-                  // This is where you'd populate State 3: Result
-                  // You can reuse your demo logic here but with real data
-                  renderResult(data.product);
-              } else {
-                  alert("Product not found in database.");
-                  resetScan(); // Function to go back to scanner state
-              }
-          });
-  }
-
-  window.addEventListener('load', startScanner);
-
-// Call this function when the page loads
-window.addEventListener('load', startWebcam);
-const demoProducts = {
-  parlg:   { name:'Parle-G Original Gluco Biscuits', brand:'Parle Products',  barcode:'8901719110024', serving:'Per 100g', sugarG:28, tsp:7,    pct:112, cls:'danger', cal:462, carbs:'76g', fat:'11g', alertTitle:'Hidden sugar detected',         alertBody:'Contains dextrose and refined wheat flour — both spike blood glucose rapidly. Often mistaken as a healthy biscuit.' },
-  frooti:  { name:'Frooti Mango Drink 200ml',        brand:'Parle Agro',       barcode:'8901054000121', serving:'Per 200ml',sugarG:22, tsp:5.5,  pct:88,  cls:'warn',   cal:96,  carbs:'24g', fat:'0g',  alertTitle:'High sugar in one pack',        alertBody:'22g in one 200ml pack = 88% of your daily WHO limit. Fruit flavour masks how sweet it really is.' },
-  maggi:   { name:'Maggi 2-Minute Masala Noodles',   brand:'Nestlé India',     barcode:'8901058000058', serving:'Per 70g',  sugarG:3,  tsp:0.75, pct:12,  cls:'ok',     cal:316, carbs:'45g', fat:'12g', alertTitle:'Sugar is low, but watch out',   alertBody:'Contains maltodextrin and refined maida — these spike blood glucose similarly to sugar.' },
-  kurkure: { name:'Kurkure Masala Munch',            brand:'PepsiCo India',    barcode:'8901491100016', serving:'Per 50g',  sugarG:2,  tsp:0.5,  pct:8,   cls:'ok',     cal:264, carbs:'32g', fat:'14g', alertTitle:'Sugar is low, other concerns',  alertBody:'Contains TBHQ preservative and high sodium (520mg). Fine occasionally.' },
-  goodday: { name:'Good Day Cashew Biscuits',        brand:'Britannia',        barcode:'8901063000038', serving:'Per 75g',  sugarG:18, tsp:4.5,  pct:72,  cls:'warn',   cal:370, carbs:'55g', fat:'15g', alertTitle:'Moderate sugar content',        alertBody:'18g per pack is 72% of daily limit. "Cashew" sounds healthy — but the base is refined flour + sugar.' },
-  amul:    { name:'Amul Kool Café 200ml',            brand:'Amul',             barcode:'8901088000041', serving:'Per 200ml',sugarG:20, tsp:5,    pct:80,  cls:'danger', cal:122, carbs:'22g', fat:'3g',  alertTitle:'Cold coffee, hot sugar problem',alertBody:'20g = 5 teaspoons. Fructose corn syrup listed under different names in ingredients.' }
-};
-//const html5QrCode = new Html5Qrcode("interactive");
-
-const qrCodeSuccessCallback = (decodedText, decodedResult) => {
-    // Stop scanning once a barcode is found
-    html5QrCode.stop().then(() => {
-        console.log("Scan stopped. Result:", decodedText);
-        lookupBarcode(decodedText); // This calls your existing lookup function
-    });
-};
-
-const config = { 
-    fps: 10, 
-    qrbox: { width: 250, height: 150 },
-    aspectRatio: 1.0 
-};
-
-// Start the laptop camera when the page loads
-window.addEventListener('load', () => {
-    html5QrCode.start(
-        { facingMode: "user" }, // Forces laptop webcam
-        const config, // Uses the config you defined on line 307
-        qrCodeSuccessCallback
-    ).then(() => {
-        // Update your UI badge
-        const statusBadge = document.getElementById('camera-status');
-        if (statusBadge) {
-            statusBadge.innerText = 'Live';
-            statusBadge.classList.replace('badge-info', 'badge-success');
-        }
-    }).catch((err) => {
-        console.error("Camera Error:", err);
-        document.getElementById('interactive').innerHTML = 
-            `<p style="color:white; padding:20px; text-align:center;">
-                Camera blocked. Please check browser permissions!
-            </p>`;
-    });
-});
-
-// Your existing lookup function modified to handle the result
-function lookupBarcode(barcode) {
-    // Show your Loading State (State 2 in your code)
-    document.getElementById('state-viewfinder').classList.remove('scan-state-active');
-    document.getElementById('state-loading').classList.add('scan-state-active');
-
-    fetch(`/scan/lookup?barcode=${barcode}`)
-        .then(res => res.json())
-        .then(data => {
-            if (data.success) {
-                showResult(data.product); // This should trigger your State 3 (Result)
-            } else {
-                alert("Product not found in database!");
-                resetScan();
-            }
-        })
-        .catch(err => console.error("Lookup error:", err));
-}
-
-function startDemoScan(key) {
-  const p = demoProducts[key];
-  document.getElementById('state-viewfinder').classList.remove('active');
-  document.getElementById('state-loading').classList.add('active');
-  document.getElementById('loading-name').textContent = 'Found: ' + p.name;
-  const steps = ['lstep-1','lstep-2','lstep-3','lstep-4','lstep-5'];
-  steps.forEach(s => { document.getElementById(s).className = 'lstep'; document.getElementById(s).querySelector('.lstep-dot').textContent = steps.indexOf(s)+1; });
-  document.getElementById('lstep-1').classList.add('current');
-  let step = 0;
-  const iv = setInterval(() => {
-    const el = document.getElementById(steps[step]);
-    el.className = 'lstep done'; el.querySelector('.lstep-dot').textContent = '✓';
-    step++;
-    if (step < steps.length) document.getElementById(steps[step]).classList.add('current');
-    else { clearInterval(iv); setTimeout(() => showResult(p), 350); }
-  }, 400);
-}
-
-function showResult(p) {
-  document.getElementById('state-loading').classList.remove('active');
-  document.getElementById('state-result').classList.add('active');
-  document.getElementById('r-brand').textContent = p.brand;
-  document.getElementById('r-barcode').textContent = 'Barcode: ' + p.barcode;
-  document.getElementById('r-name').textContent = p.name;
-  document.getElementById('r-serving').textContent = p.serving;
-  const gEl = document.getElementById('r-sugar-g');
-  gEl.textContent = p.sugarG + 'g';
-  gEl.style.color = p.cls === 'danger' ? 'var(--red)' : p.cls === 'warn' ? 'var(--amber)' : 'var(--teal)';
-  document.getElementById('r-tsp').textContent = '= ' + p.tsp + ' teaspoon' + (p.tsp !== 1 ? 's' : '');
-  const icons = document.getElementById('r-tsp-icons');
-  icons.innerHTML = '';
-  for (let i = 0; i < 7; i++) {
-    const d = document.createElement('div');
-    const filled = i < Math.floor(p.tsp);
-    d.style.cssText = `width:18px;height:18px;border-radius:3px;background:${filled ? 'var(--orange)' : '#F0EDE8'};${i===Math.floor(p.tsp)&&p.tsp%1>0?'opacity:.4;background:var(--orange);':''}`;
-    icons.appendChild(d);
-  }
-  document.getElementById('r-pct-label').textContent = p.pct + '%';
-  document.getElementById('r-meter').style.width = Math.min(p.pct, 100) + '%';
-  document.getElementById('r-cal').textContent = p.cal;
-  document.getElementById('r-carbs').textContent = p.carbs;
-  document.getElementById('r-fat').textContent = p.fat;
-  const alertEl = document.getElementById('r-alert');
-  const clrMap = { danger: ['var(--red-light)','var(--red)'], warn: ['var(--amber-light)','var(--amber)'], ok: ['var(--teal-light)','var(--teal)'] };
-  const [bg, clr] = clrMap[p.cls];
-  alertEl.style.background = bg;
-  document.getElementById('r-alert-icon').style.background = clr;
-  document.getElementById('r-alert-title').style.color = clr;
-  document.getElementById('r-alert-title').textContent = p.alertTitle;
-  document.getElementById('r-alert-body').style.color = clr;
-  document.getElementById('r-alert-body').textContent = p.alertBody;
-  document.getElementById('f-name').value = p.name;
-  document.getElementById('f-brand').value = p.brand;
-  document.getElementById('f-sugar').value = p.sugarG;
-  document.getElementById('f-cal').value = p.cal;
-  document.getElementById('f-carbs').value = parseInt(p.carbs);
-  document.getElementById('f-fat').value = parseInt(p.fat);
-  document.getElementById('f-serving').value = p.serving;
-  document.getElementById('f-barcode').value = p.barcode;
-}
-
-function resetScan() {
-  document.getElementById('state-result').classList.remove('active');
-  document.getElementById('state-loading').classList.remove('active');
-  document.getElementById('state-viewfinder').classList.add('active');
-}
-
-async function lookupBarcode(scannedCode) {
-    // If we have a scannedCode from the camera, use it. 
-    // Otherwise, grab it from the manual input box.
-    const bc = scannedCode || document.getElementById('manualBarcode').value;
+    let html5QrcodeScanner = new Html5QrcodeScanner(
+        "reader", 
+        { 
+            fps: 15, 
+            qrbox: { width: 280, height: 160 },
+            aspectRatio: 1.0 
+        }, 
+        false
+    );
     
-    if (!bc) return;
-  const res = await fetch('/scan/lookup?barcode=' + bc);
-  const data = await res.json();
-  if (data.success) {
-    const p = data.product;
-    showResult({ name:p.name, brand:p.brand, barcode:p.barcode, serving:p.servingSize, sugarG:p.sugarG, tsp:p.tsp, pct:p.pctDailyLimit, cls:p.rating, cal:p.calories, carbs:p.carbs+'g', fat:p.fat+'g', alertTitle:'Product found', alertBody:`${p.name} contains ${p.sugarG}g of sugar per ${p.servingSize}.` });
-    document.getElementById('state-viewfinder').classList.remove('active');
-    document.getElementById('state-result').classList.add('active');
-  } else {
-    alert('Product not found. Try entering details manually.');
-  }
-}
+    html5QrcodeScanner.render(onScanSuccess, onScanFailure);
 </script>
 <%- include('../partials/footer') %>
