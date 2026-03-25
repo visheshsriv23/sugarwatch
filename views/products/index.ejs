@@ -19,8 +19,8 @@
         <select class="form-control form-select" name="rating">
           <option value="All" <%= selectedRating === 'All' ? 'selected' : '' %>>All levels</option>
           <option value="ok" <%= selectedRating === 'ok' ? 'selected' : '' %>>Low (&lt;10g)</option>
-<option value="warn" <%= selectedRating === 'warn' ? 'selected' : '' %>>Medium (10-20g)</option>
-<option value="danger" <%= selectedRating === 'danger' ? 'selected' : '' %>>High (&gt;20g)</option>
+          <option value="warn" <%= selectedRating === 'warn' ? 'selected' : '' %>>Medium (10–20g)</option>
+          <option value="danger" <%= selectedRating === 'danger' ? 'selected' : '' %>>High (&gt;20g)</option>
         </select>
       </div>
       <button type="submit" class="btn btn-primary">
@@ -35,13 +35,13 @@
 </div>
 
 <!-- Results Count -->
-<div class="flex justify-between items-center mb-2">
+ <div class="flex justify-between items-center mb-2">
   <p style="font-size:13px;color:var(--muted);"><strong style="color:var(--text);"><%= products.length %></strong> product<%= products.length !== 1 ? 's' : '' %> found</p>
   <a href="/scan" class="btn btn-outline btn-sm">+ Log food manually</a>
 </div>
 
 <!-- Products Table -->
-<% if (products.length === 0) { %>
+ <% if (products.length === 0) { %>
   <div class="card">
     <div class="card-body" style="text-align:center;padding:3rem;">
       <div style="font-size:2.5rem;margin-bottom:.75rem;">🔍</div>
@@ -93,9 +93,9 @@ const pct = Math.round((p.sugarG / userLimit) * 100);
           <td>
   <% 
     let ratingClass = 'bg-success';
-    let ratingText = 'Low';
-    if (p.sugarG > 20) { ratingClass = 'bg-danger'; ratingText = 'High'; }
-    else if (p.sugarG >= 10) { ratingClass = 'bg-warning'; ratingText = 'Medium'; }
+    let ratingText = 'ok';
+    if (p.sugarG > 20) { ratingClass = 'bg-danger'; ratingText = 'danger'; }
+    else if (p.sugarG >= 10) { ratingClass = 'bg-warning'; ratingText = 'warn'; }
   %>
   <span class="badge rounded-pill <%= ratingClass %>">
     <%= ratingText %>
@@ -111,8 +111,7 @@ const pct = Math.round((p.sugarG / userLimit) * 100);
       </tbody>
     </table>
   </div>
-</div>
-
+</div> 
 <!-- Mobile Cards View -->
 <div class="product-grid mt-2" style="display:none;" id="productCards">
   <% products.forEach(p => { %>

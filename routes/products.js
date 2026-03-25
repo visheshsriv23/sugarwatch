@@ -2,40 +2,33 @@ const express = require('express');
 const router = express.Router();
 const { ensureAuth } = require('../middleware/auth');
 const Product = require('../models/Product');
- const FoodLog = require('../models/FoodLog');
+const FoodLog = require('../models/FoodLog');
 
 // GET /products
 router.get('/', ensureAuth, async (req, res) => {
     try {
         const { q, category, rating } = req.query;
         const filter = {};
-
-        if (q) {
-            filter.$or = [
+        if (q) filter.$or = [
                 { name: { $regex: q, $options: 'i' } },
                 { brand: { $regex: q, $options: 'i' } }
-            ];
-        }
-
-        if (category && category !== 'All') {
-            filter.category = category;
-        }
+         ];
+        if (category && category !== 'All') filter.category = category;
 
         // Fix the Rating filter logic
-        if (rating && rating !== 'All') {
-            if (rating === 'ok') filter.rating = 'ok';
-            else if (rating === 'warn') filter.rating = 'warn';
-            else if (rating === 'danger') filter.rating = 'danger';
-        }
+        if (rating && rating !== 'All') filter.rating = rating;
+            // if (rating === 'ok') filter.rating = 'ok';
+            // else if (rating === 'warn') filter.rating = 'warn';
+            // else if (rating === 'danger') filter.rating = 'danger';
 
-        const products = await Product.find(filter).sort({ createdAt: -1 });
+        const products = await Product.find(filter).sort({ sugarG: -1 }).limit(50);
         
         // This is the line that makes your categories dynamic!
-        const categories = ['All', ...(await Product.distinct('category'))];
+        const categories = ['All', 'Biscuits', 'Beverages', 'Snacks', 'Noodles', 'Dairy', 'Sauces', 'Cereals', 'Other',(await Product.distinct('category'))];
 
         res.render('products/index', {
             title: 'Product Database',
-            products: products,
+            products,
             userLimit: req.user.dailyLimit || 25,
             categories,
             q: q || '',

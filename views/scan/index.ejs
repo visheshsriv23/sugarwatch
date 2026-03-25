@@ -42,72 +42,63 @@
 
     <div class="mt-4 text-center">
         <p>Can't scan? Enter manually:</p>
-        <form action="/products/search-barcode" method="POST" class="d-flex justify-content-center">
-            <input type="text" name="barcode" class="form-control w-50" placeholder="Enter 13-digit code">
-            <button type="submit" class="btn btn-primary ms-2">Go</button>
-        </form>
+        <form action="/scan/search-barcode" method="POST">
+    <input type="text" name="barcode" placeholder="Enter 13-digit code">
+    <button type="submit" class="btn btn-primary ms-2">Go</button>
+</form>
     </div>
 </div>
 
     <!-- Manual Add Form -->
-    <div>
-      <div class="card">
-        <div class="card-header">
-          <span class="card-title">Add food manually</span>
+    <div class="card">
+  <div class="card-header">
+    <span class="card-title">Add food manually</span>
+  </div>
+  <div class="card-body">
+    <form action="/scan/log" method="POST">
+      <div class="form-group">
+        <label class="form-label">Product name *</label>
+        <input class="form-control" type="text" name="name" placeholder="e.g. Parle-G Biscuits" required/>
+      </div>
+      
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Brand</label>
+          <input class="form-control" type="text" name="brand" placeholder="e.g. Parle"/>
         </div>
-        <div class="card-body">
-          <form action="/scan/log" method="POST">
-            <div class="form-group">
-              <label class="form-label">Product name *</label>
-              <input class="form-control" type="text" name="productName" placeholder="e.g. Parle-G Biscuits" required/>
-            </div>
-            <div class="form-row">
-              <div class="form-group">
-                <label class="form-label">Brand</label>
-                <input class="form-control" type="text" name="brand" placeholder="e.g. Parle"/>
-              </div>
-              <div class="form-group">
-                <label class="form-label">Serving size</label>
-                <input class="form-control" type="text" name="servingSize" placeholder="e.g. 100g"/>
-              </div>
-            </div>
-            <div class="form-row">
-              <div class="form-group">
-                <label class="form-label">Sugar (grams) *</label>
-                <input class="form-control" type="number" name="sugarG" min="0" max="500" step="0.1" placeholder="0.0" required/>
-              </div>
-              <div class="form-group">
-                <label class="form-label">Calories (kcal)</label>
-                <input class="form-control" type="number" name="calories" min="0" placeholder="0"/>
-              </div>
-            </div>
-            <div class="form-row">
-              <div class="form-group">
-                <label class="form-label">Carbs (g)</label>
-                <input class="form-control" type="number" name="carbs" min="0" step="0.1" placeholder="0.0"/>
-              </div>
-              <div class="form-group">
-                <label class="form-label">Fat (g)</label>
-                <input class="form-control" type="number" name="fat" min="0" step="0.1" placeholder="0.0"/>
-              </div>
-            </div>
-            <div class="form-group">
-              <label class="form-label">Meal type</label>
-              <select class="form-control form-select" name="mealType">
-                <option value="breakfast">🌅 Breakfast</option>
-                <option value="lunch">🍱 Lunch</option>
-                <option value="dinner">🌙 Dinner</option>
-                <option value="snack" selected>🍿 Snack</option>
-              </select>
-            </div>
-            <button type="submit" class="btn btn-primary w-full" style="justify-content:center;">
-              Log this food
-            </button>
-          </form>
+        <div class="form-group">
+          <label class="form-label">Serving size</label>
+          <input class="form-control" type="text" name="servingSize" placeholder="e.g. 100g"/>
         </div>
       </div>
-    </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Sugar (grams) *</label>
+          <input class="form-control" type="number" name="sugarG" min="0" max="500" step="0.1" placeholder="0.0" required/>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Calories (kcal)</label>
+          <input class="form-control" type="number" name="calories" min="0" placeholder="0"/>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Meal type</label>
+        <select class="form-control form-select" name="mealType">
+          <option value="breakfast">🌅 Breakfast</option>
+          <option value="lunch">🍱 Lunch</option>
+          <option value="dinner">🌙 Dinner</option>
+          <option value="snack" selected>🍿 Snack</option>
+        </select>
+      </div>
+
+      <button type="submit" class="btn btn-primary w-full" style="justify-content:center;">
+        Log this food
+      </button>
+    </form>
   </div>
+</div>
 
   <!-- Sample Products -->
   <div class="card mt-2">
@@ -253,7 +244,7 @@
         statusText.innerHTML = `<div class="spinner-border text-warning" role="status"></div><p>Product Found! Fetching data...</p>`;
         
         // Step 2: Redirect to your backend route with the barcode
-        window.location.href = `/products/barcode/${decodedText}`;
+        window.location.href = `/scan/barcode/${decodedText}`;
     }
 
     function onScanFailure(error) {

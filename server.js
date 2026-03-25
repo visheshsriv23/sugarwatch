@@ -32,7 +32,7 @@ app.use(
         "script-src": ["'self'", "'unsafe-inline'", "https://cdn.jsdelivr.net"],
         "style-src": ["'self'", "'unsafe-inline'", "https://cdn.jsdelivr.net", "https://cdnjs.cloudflare.com", "https://fonts.googleapis.com"],
         "font-src": ["'self'", "https://fonts.gstatic.com", "https://cdnjs.cloudflare.com"],
-        "img-src": ["'self'", "data:", "blob:"],
+        "img-src": ["'self'", "data:"],
       },
     },
   })
@@ -52,7 +52,7 @@ app.use('/auth/signup', authLimiter);
 if (process.env.NODE_ENV === 'development') app.use(morgan('dev'));
 
 // ── BODY PARSING ──────────────────────────────
-app.use(express.urlencoded({ extended: false }));
+app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 app.use(methodOverride('_method'));
 
